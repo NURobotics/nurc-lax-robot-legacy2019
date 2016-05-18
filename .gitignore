@@ -1,0 +1,4 @@
+*.sw[p|n|o]
+*.pyc
+build/*
+!build/.gitignore
