@@ -5,15 +5,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(ROBOTEQ_INCLUDE_DIR ../roboteq-controller/include)
 set(PIXY_LIBRARY_DIR ../pixy/buil/libpixyusb)
 
-find_package(Boost 1.49 COMPONENTS thread system chrono REQUIRED)
+find_package(Boost 1.49 COMPONENTS thread system chrono program_options REQUIRED)
 find_package(libpixyusb REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 
-add_library(libroboteq
+add_library(roboteq
   ../roboteq-controller/src/roboteq_controller.cc
   ../roboteq-controller/src/myd_serial.cc)
 
-add_library(liblaxrobot
+add_library(laxrobot
   src/lax_robot.cc)
 
 include_directories(
@@ -25,7 +25,7 @@ include_directories(
 
 add_executable(lax_robot_main src/lax_robot_main.cc)
 target_link_libraries(lax_robot_main
-  liblaxrobot
-  libroboteq
+  laxrobot
+  roboteq
   ${Boost_LIBRARIES}
   ${LIBUSB_1_LIBRARY})

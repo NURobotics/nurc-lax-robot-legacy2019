@@ -8,6 +8,11 @@
 
 template <int N>
 struct Coordinate {
+  Coordinate() {}
+  Coordinate(const Coordinate &coordinate) {
+    memcpy(dim, coordinate.dim, sizeof(float) * N);
+  }
+
   float dim[N];
 };
 
@@ -27,6 +32,9 @@ public:
 private:
   void camera_worker();
   void motor_controller_worker();
+
+  bool configure_motor_controller();
+  bool configure_cameras();
 
   PixyHandle& left_camera() { return cameras_[left_camera_index_]; }
   PixyHandle& right_camera() { return cameras_[left_camera_index_]; }
