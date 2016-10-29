@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include <boost/program_options.hpp>
+// #include <boost/program_options.hpp>
 
 #include <lax_robot.h>
 
@@ -15,10 +15,7 @@ using std::cerr;
 using std::endl;
 using std::string;
 
-namespace po = boost::program_options;
-
-const string kMotorControllerPort = "/dev/ttyACM0";
-const int kMotorControllerBaudRate = 9600;
+// namespace po = boost::program_options;
 
 bool stop_flag = false;
 
@@ -29,10 +26,10 @@ void sigint_handler(int signo)
  
 int main(int argc, char **argv)
 {
-  string motor_port;
-  int motor_baud;
+  string motor_port = "/dev/ttyO2";
+  int motor_baud = 115200;
   
-  try {
+  /*try {
     po::options_description desc("Options");
     desc.add_options()
       ("help,h", "The motor controller serial port and baud rate must be supplied")
@@ -62,7 +59,7 @@ int main(int argc, char **argv)
   } catch(std::exception& e) {
     cerr << "Could not handle exception: " << e.what() << endl;
     return EXIT_FAILURE;
-  }
+  }*/
   
   if (signal(SIGINT, sigint_handler) == SIG_ERR) {
     return EXIT_FAILURE;

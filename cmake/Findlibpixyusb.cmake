@@ -27,6 +27,7 @@ else (LIBPIXYUSB_0_LIBRARY AND LIBPIXYUSB_0_INCLUDE_DIR)
       /usr/local/include
       /opt/local/include
       /sw/include
+      /usr/arm-linux-gnueabihf/include
   )
 
   find_library(LIBRARY_DIR
@@ -37,6 +38,7 @@ else (LIBPIXYUSB_0_LIBRARY AND LIBPIXYUSB_0_INCLUDE_DIR)
       /usr/local/lib
       /opt/local/lib
       /sw/lib
+      /usr/arm-linux-gnueabihf/lib
   )
 
   message ("lib ${LIBRARY_DIR}")
