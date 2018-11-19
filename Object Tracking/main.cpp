@@ -8,28 +8,30 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
+#include "RoboteqDevice.h"
+#include "ErrorCodes.h"
+#include "Constants.h"
+
 using namespace cv;
 using namespace std;
 
 // Initial min and max HSV filter values.
-int H_MIN = 0;
-int H_MAX = 255;
-int S_MIN = 0;
-int S_MAX = 255;
-int V_MIN = 0;
-int V_MAX = 255;
+int HMin = 0;
+int HMax = 255;
+int SMin = 0;
+int SMax = 255;
+int VMin = 0;
+int VMax = 255;
 
 // Default capture width and height
-//const int FRAME_WIDTH = 1920; const int FRAME_HEIGHT = 1080;
-const int FRAME_WIDTH = 1280; const int FRAME_HEIGHT = 720;
-//const int FRAME_WIDTH = 640; const int FRAME_HEIGHT = 480;
+const int frameWidth = 1280; const int frameHeight = 720;
 
 // Max number of objects to be detected in frame
-const int MAX_NUM_OBJECTS = 75;
+const int maxNumObjects = 75;
 
 // Minimum and maximum object area
-const int MIN_OBJECT_AREA = 20*20;
-const int MAX_OBJECT_AREA = FRAME_HEIGHT*FRAME_WIDTH/1.5;
+const int minObjectArea = 20*20;
+const int maxObjectArea = frameHeight*frameWidth/1.5;
 
 // Creates structuring element that will be used to "dilate" and "erode" image.
 const Mat erodeElement = getStructuringElement(MORPH_RECT,Size(6,6));
@@ -70,11 +72,6 @@ double hyp = 0;
 double angle1 = 0;
 double angle2 = 0;
 
-// Declaring image holders
-Mat cameraFeedL, cameraFeedR;
-Mat HSVL, HSVR;
-Mat thresholdL, thresholdR;
-
 Mat ballCoordL(1,1,CV_64FC2);
 Mat ballCoordR(1,1,CV_64FC2);
 Mat undistoredCoordL;
@@ -83,10 +80,10 @@ Mat undistoredCoordR;
 Mat P(4,1,CV_64F);
 
 // Distances in physical space (m)
-double dxCameras = 0.362;
-double dyGround = 1;
-double innerArmLength = .5;
-double outerArmLength = .5;
+const double dxCameras = 0.362;
+const double dyGround = 1;
+const double innerArmLength = .05;
+const double outerArmLength = .05;
 double maxArmLength;
 double minArmLength;
 
@@ -105,6 +102,15 @@ bool objectFoundR = false;
 bool showCrossHairs = true;
 bool showWindows = false;
 
+RoboteqDevice RD;
+const int innerMotor = 1;
+const int outerMotor = 2;
+const int motorRPM = 1000;
+const int stepCount = 5000;
+const string port = "\\\\.\\com3";
+int innerCount;
+int outerCount;
+
 // Names that will appear at the top of each window
 const string windowNameL = "Left Original Image";
 const string windowNameL1 = "Left HSV Image";
@@ -118,6 +124,7 @@ const string trackbarWindowName = "Trackbars";
 // Measures the time of each function
 double frameCounter, readt, cvtColort, inRanget, morphOpst, trackFilteredObjectt, findCirlcest, calcPositiont = 0;
 
+# define M_PI           3.14159265358979323846
 
 void on_trackbar(int, void*) {}
 
@@ -148,24 +155,49 @@ double timeOfFunction(long long start, string func) {
 	//cout << func << ": " << elapsedMilliseconds << endl;
 }
 
+void configureRoboteq() {
+    int status;
+    cout << "Connecting to Roboteq...";
+	if((status = RD.Connect(port)) != RQ_SUCCESS){
+		cout << "Error connecting to device --> " << status << "." << endl;
+		return;
+	}
+	else
+        cout << "succeeded!";
+
+    RD.SetCommand(_P, innerMotor, 0/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, (M_PI/2)/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, M_PI/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, (3*M_PI/2)/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, (2*M_PI)/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, 0/(2*M_PI) * stepCount);
+    waitKey(1000);
+}
+
+
 void createTrackbars() {
 
     namedWindow(trackbarWindowName,0);
 
 	char TrackbarName[50];
-	sprintf( TrackbarName, "H_MIN", H_MIN);
-	sprintf( TrackbarName, "H_MAX", H_MAX);
-	sprintf( TrackbarName, "S_MIN", S_MIN);
-	sprintf( TrackbarName, "S_MAX", S_MAX);
-	sprintf( TrackbarName, "V_MIN", V_MIN);
-	sprintf( TrackbarName, "V_MAX", V_MAX);
+	sprintf( TrackbarName, "HMin", HMin);
+	sprintf( TrackbarName, "HMax", HMax);
+	sprintf( TrackbarName, "SMin", SMin);
+	sprintf( TrackbarName, "SMax", SMax);
+	sprintf( TrackbarName, "VMin", VMin);
+	sprintf( TrackbarName, "VMax", VMax);
 
-    createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar );
-    createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar );
-    createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar );
-    createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar );
-    createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar );
-    createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
+    createTrackbar( "HMin", trackbarWindowName, &HMin, HMax, on_trackbar );
+    createTrackbar( "HMax", trackbarWindowName, &HMax, HMax, on_trackbar );
+    createTrackbar( "SMin", trackbarWindowName, &SMin, SMax, on_trackbar );
+    createTrackbar( "SMax", trackbarWindowName, &SMax, SMax, on_trackbar );
+    createTrackbar( "VMin", trackbarWindowName, &VMin, VMax, on_trackbar );
+    createTrackbar( "VMax", trackbarWindowName, &VMax, VMax, on_trackbar );
 }
 
 void drawObject(int x, int y,Mat &frame) {
@@ -174,17 +206,32 @@ void drawObject(int x, int y,Mat &frame) {
     if(y-25>0)
     line(frame,Point(x,y),Point(x,y-25),Scalar(0,255,0),2);
     else line(frame,Point(x,y),Point(x,0),Scalar(0,255,0),2);
-    if(y+25<FRAME_HEIGHT)
+    if(y+25<frameHeight)
     line(frame,Point(x,y),Point(x,y+25),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(x,FRAME_HEIGHT),Scalar(0,255,0),2);
+    else line(frame,Point(x,y),Point(x,frameHeight),Scalar(0,255,0),2);
     if(x-25>0)
     line(frame,Point(x,y),Point(x-25,y),Scalar(0,255,0),2);
     else line(frame,Point(x,y),Point(0,y),Scalar(0,255,0),2);
-    if(x+25<FRAME_WIDTH)
+    if(x+25<frameWidth)
     line(frame,Point(x,y),Point(x+25,y),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(FRAME_WIDTH,y),Scalar(0,255,0),2);
+    else line(frame,Point(x,y),Point(frameWidth,y),Scalar(0,255,0),2);
 
 	putText(frame,intToString(x)+","+intToString(y),Point(x,y+30),1,1,Scalar(0,255,0),2);
+}
+
+void drawMotorSym(Mat image) {
+    image = Mat::zeros( frameHeight, frameWidth, CV_8UC3 );
+    int radius = 180;
+    int x2 = radius*cos(angle1)+frameWidth/2;
+    int y2 = radius*sin(angle1)+frameHeight/2;
+    int x3 = radius*cos(angle2)+x2;
+    int y3 = radius*sin(angle2)+y2;
+    circle( image, Point( frameWidth/2, frameHeight/2 ), radius, Scalar( 0, 0, 255 ), 1, 8 );
+    line( image, Point(frameWidth/2, frameHeight/2), Point(x2, y2), Scalar( 110, 220, 0 ),  2, 8 );
+    circle( image, Point( x2, y2 ), radius, Scalar( 0, 0, 255 ), 1, 8 );
+    line( image, Point( x2, y2 ), Point(x3, y3), Scalar( 110, 220, 0 ),  2, 8 );
+    circle( image, Point( x3, y3 ), 10, Scalar( 0, 255, 255 ), -1, 8 );
+    imshow("motors",image);
 }
 
 void morphOps(Mat &thresh) {
@@ -226,8 +273,8 @@ void trackFilteredObject(double &x, double &y, Mat threshold, Mat &cameraFeed, b
 	if (hierarchy.size() > 0) {
 		int numObjects = hierarchy.size();
 
-        // Image too noisy if number of objects >= MAX_NUM_OBJECTS
-        if (numObjects < MAX_NUM_OBJECTS){
+        // Image too noisy if number of objects >= maxNumObjects
+        if (numObjects < maxNumObjects){
 			for (int i = 0; i >= 0; i = hierarchy[i][0]) {
 
 				Moments moment = moments((cv::Mat)contours[i]);
@@ -237,7 +284,7 @@ void trackFilteredObject(double &x, double &y, Mat threshold, Mat &cameraFeed, b
 				//if the area is the same as the 3/2 of the image size, probably just a bad filter
 				//we only want the object with the largest area so we save a reference area of each
 				//iteration and compare it to the area in the next iteration.
-                if (area > MIN_OBJECT_AREA && area < MAX_OBJECT_AREA && area > refArea) {
+                if (area > minObjectArea && area < maxObjectArea && area > refArea) {
 					x = moment.m10/area;
 					y = moment.m01/area;
 					objectFound = true;
@@ -285,12 +332,28 @@ void findFinalAndAngles() {
         yf = -dyGround - (yf + dyGround);
     }
 
-    hyp = sqrt(xf*xf + yf*yf);
+    hyp = sqrt(xi*xi + yi*yi);
+    //hyp = sqrt(xf*xf + yf*yf);
     if (hyp > maxArmLength) hyp = maxArmLength;
     if (hyp < minArmLength) hyp = minArmLength;
 
     angle2 = acos((hyp*hyp - innerArmLength*innerArmLength - outerArmLength*outerArmLength)/(2*innerArmLength*outerArmLength));
-    angle1 = atan2(yf,xf) - atan((outerArmLength*sin(angle2))/(innerArmLength+outerArmLength*cos(angle2)));
+    angle1 = atan2(yi,xi) - atan((outerArmLength*sin(angle2))/(innerArmLength+outerArmLength*cos(angle2)));
+
+    //angle2 = acos((hyp*hyp - innerArmLength*innerArmLength - outerArmLength*outerArmLength)/(2*innerArmLength*outerArmLength));
+    //angle1 = atan2(yf,xf) - atan((outerArmLength*sin(angle2))/(innerArmLength+outerArmLength*cos(angle2)));
+
+    angle2 += angle1;
+    if (xi < 0) {
+        angle1 += M_PI;
+        angle2 += M_PI;
+    }
+
+    innerCount = angle1/(2*M_PI) * stepCount;
+    outerCount = angle2/(2*M_PI) * stepCount;
+
+    //RD.SetCommand(_P, innerMotor, innerCount);
+    //RD.SetCommand(_P, outerMotor, outerCount);
 }
 
 void GetCooridnates(VideoCapture capture, double* x, double* y, Mat* cameraFeed, Mat* HSV, Mat* threshold, bool* objectFound, bool showCrossHairs, bool LeftCam) {
@@ -310,7 +373,7 @@ void GetCooridnates(VideoCapture capture, double* x, double* y, Mat* cameraFeed,
     // Filters HSV image between values and store filtered image to
     // threshold matrix
     if (LeftCam) start = PerformanceCounter();
-    inRange(*HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),*threshold);
+    inRange(*HSV,Scalar(0,100,154),Scalar(10,164,255),*threshold);
     if (LeftCam) inRanget += timeOfFunction(start, "inRange");
 
     // Performs morphological operations on thresholded image to eliminate noise
@@ -349,9 +412,9 @@ void findRealandPosition(double xcL, double ycL, double xcR, double ycR, Mat pro
         x3 = x2; y3 = y2; z3 = z2;
         x2 = xi; y2 = yi; z2 = zi; t2 = ti;
 
-        xi = -P.at<double>(0,0)/P.at<double>(3,0) + dxCameras/2;//triangulate points outputs;
-        yi = -P.at<double>(1,0)/P.at<double>(3,0);//triangulate points outputs;
-        zi = -P.at<double>(2,0)/P.at<double>(3,0);//triangulate points outputs;
+        xi = -P.at<double>(0,0)/P.at<double>(3,0);
+        yi = P.at<double>(1,0)/P.at<double>(3,0);
+        zi = -P.at<double>(2,0)/P.at<double>(3,0);
         ti = (PerformanceCounter() / PerformanceFrequency()) * 1000000.0;
 
         findFinalAndAngles();
@@ -367,6 +430,14 @@ int main(int argc, char* argv[]) {
     // Old camera = RIGHT
 	double xcL, ycL = 0;
 	double xcR, ycR = 0;
+
+    // Declaring image holders
+    Mat cameraFeedL, cameraFeedR;
+    Mat HSVL, HSVR;
+    Mat thresholdL, thresholdR;
+
+    // Correct Motor Position Images
+    Mat motorSym;
 
     KL.at<double>(0,0) = 1072.596243797988791;
     KL.at<double>(1,1) = 1073.690381426655222;
@@ -401,18 +472,18 @@ int main(int argc, char* argv[]) {
     Mat projR = KR*transformR;
 
     maxArmLength = innerArmLength + outerArmLength;
-    minArmLength = innerArmLength - outerArmLength;
+    minArmLength = abs(innerArmLength - outerArmLength);
 
-	VideoCapture captureL(2);
-	VideoCapture captureR(1);
+	VideoCapture captureL(2); //2
+	VideoCapture captureR(1); //1
 
     captureL.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
-	captureL.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
-	captureL.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
+	captureL.set(CV_CAP_PROP_FRAME_WIDTH,frameWidth);
+	captureL.set(CV_CAP_PROP_FRAME_HEIGHT,frameHeight);
 
     captureR.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
-	captureR.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
-	captureR.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
+	captureR.set(CV_CAP_PROP_FRAME_WIDTH,frameWidth);
+	captureR.set(CV_CAP_PROP_FRAME_HEIGHT,frameHeight);
 
     time_t timeBegin = time(0);
     int tick = 0;
@@ -424,6 +495,8 @@ int main(int argc, char* argv[]) {
     namedWindow(windowNameR, WINDOW_NORMAL);
     namedWindow(windowNameR1, WINDOW_NORMAL);
     namedWindow(windowNameR2, WINDOW_NORMAL);
+
+    //configureRoboteq();
 
 	while(1) {
         thread cameraL(GetCooridnates, captureL, &xcL, &ycL, &cameraFeedL, &HSVL, &thresholdL, &objectFoundL, showCrossHairs, true);
@@ -449,27 +522,39 @@ int main(int argc, char* argv[]) {
             cout << "tFO: " << trackFilteredObjectt / frameCounter << endl;
             cout << "findCirlces: " << findCirlcest / frameCounter << endl;
             cout << "calcPosition: " << calcPositiont / frameCounter << endl;
-            cout << P/P.at<double>(3,0) << endl;
+            cout << "xi: " << xi << ", yi: " << yi << ", zi: " << zi << endl;
             cout << "xf: " << xf << ", yf: " << yf << endl;
             frameCounter = 0; readt = 0; cvtColort = 0; inRanget = 0; morphOpst = 0; trackFilteredObjectt = 0, findCirlcest = 0, calcPositiont = 0;
         }
+
+        drawMotorSym(motorSym);
+
+/*         motorSym = Mat::zeros( frameHeight, frameWidth, CV_8UC3 );
+ *         int radius = 180;
+ *         int x2 = radius*cos((xi > 0 ? M_PI : 0) + atan(yi/xi))+frameWidth/2;
+ *         int y2 = radius*sin((xi > 0 ? M_PI : 0) + atan(yi/xi))+frameHeight/2;
+ *         circle( motorSym, Point( frameWidth/2, frameHeight/2 ), radius, Scalar( 0, 0, 255 ), 1, 8 );
+ *         line( motorSym, Point(frameWidth/2, frameHeight/2), Point(x2, y2), Scalar( 110, 220, 0 ),  2, 8 );
+ *         imshow("motors",motorSym);
+ */
 
         if (GetAsyncKeyState(VK_CAPITAL))
             showWindows = !showWindows;
 
         // Show Frames if caps lock is on
         if (showWindows) {
-            imshow(windowNameL,cameraFeedL); imshow(windowNameL2,thresholdL); //imshow(windowNameL1,HSVL);
+            imshow(windowNameL,cameraFeedL); imshow(windowNameL2,thresholdL); imshow(windowNameL1,HSVL);
             imshow(windowNameR,cameraFeedR); imshow(windowNameR2,thresholdR); //imshow(windowNameR1,HSVR);
 
-            resizeWindow(windowNameL, 640,360); resizeWindow(windowNameL2, 640,360); //resizeWindow(windowNameL1, 640,360);
+            resizeWindow(windowNameL, 640,360); resizeWindow(windowNameL2, 640,360); resizeWindow(windowNameL1, 640,360);
             resizeWindow(windowNameR, 640,360); resizeWindow(windowNameR2, 640,360); //resizeWindow(windowNameR1, 640,360);
 
-            moveWindow(windowNameL, 0,0); moveWindow(windowNameL2, 640,0); // moveWindow(windowNameL1, 720,0);
+            moveWindow(windowNameL, 0,0); moveWindow(windowNameL2, 640,0); moveWindow(windowNameL1, 720,0);
             moveWindow(windowNameR, 0,360); moveWindow(windowNameR2, 640,360); // moveWindow(windowNameR1, 720,360);
 
-            waitKey(1);
+
         }
+        waitKey(1);
 	}
 
 	return 0;
