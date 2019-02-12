@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/nvidia/nurc-lax-robot-master/Object Tracking/main.cpp
+sstream
+-
+string
+-
+iostream
+-
+ctime
+-
+chrono
+-
+opencv2/core/core.hpp
+-
+opencv2/highgui/highgui.hpp
+-
+opencv2/imgproc/imgproc.hpp
+-
+opencv2/videoio/videoio.hpp
+/home/nvidia/nurc-lax-robot-master/Object Tracking/opencv2/videoio/videoio.hpp
+
