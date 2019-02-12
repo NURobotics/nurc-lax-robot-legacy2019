@@ -27,7 +27,7 @@ int VMax = 255;
 const int frameWidth = 1280; const int frameHeight = 720;
 
 // Max number of objects to be detected in frame
-const int maxNumObjects = 75;
+const int maxNumObjects = 45;
 
 // Minimum and maximum object area
 const int minObjectArea = 20*20;
@@ -41,7 +41,7 @@ const Mat dilateElement = getStructuringElement(MORPH_RECT,Size(16,16));
 double ti = 0;
 double t2 = 0;
 double td = 0;
-double tf = 0;
+double dt = 0;
 
 //Declaring Velocity and Gravity
 double g = 9.80665;
@@ -72,6 +72,9 @@ double hyp = 0;
 double angle1 = 0;
 double angle2 = 0;
 
+double trackX = 0;
+double trackY = 0;
+
 Mat ballCoordL(1,1,CV_64FC2);
 Mat ballCoordR(1,1,CV_64FC2);
 Mat undistoredCoordL;
@@ -81,9 +84,11 @@ Mat P(4,1,CV_64F);
 
 // Distances in physical space (m)
 const double dxCameras = 0.362;
-const double dyGround = 1;
+const double dyGround = .75;
 const double innerArmLength = .05;
 const double outerArmLength = .05;
+double squareSumArmLength;
+double outInArm2;
 double maxArmLength;
 double minArmLength;
 
@@ -311,48 +316,63 @@ void trackFilteredObject(double &x, double &y, Mat threshold, Mat &cameraFeed, b
 *   Do once with u=x,v=z and another with u=y,v=z and set the value of C to xf and yf since the ball reaches the robot at z=0
 */
 void findFinalAndAngles() {
+    if (amountFound < 2) {
+        return;
+    }
     if (amountFound == 2) {
-        td = t2 - ti;
+        td = (ti - t2)/PerformanceFrequency();
 
         zv = (z2 - zi)/td;
         xv = (x2 - xi)/td;
         yv = (y2 - yi)/td;
 
-        tf = (zf - zi)/zv + ti;
+        dt = (zf - zi)/zv;
 
-        xf = xv * tf;
-        yf = 0.5 * g * (tf*tf) + yv * tf + yi;
+        xf = (xv * dt) * 0.5 + xf * 0.5;
+        yf = (0.5 * g * (dt*dt) + yv * dt + yi)  * 0.5 + yf * 0.5;
     }
     else if (amountFound > 2) {
-        xf = (z2 * z3 * (z2 - z3) * xi + z3 * zi * (z3 - zi) * x2 + zi * z2 * (zi - z2) * x3) / ((zi - z2) * (zi - z3) * (z2 - z3));
-        yf = (z2 * z3 * (z2 - z3) * yi + z3 * zi * (z3 - zi) * y2 + zi * z2 * (zi - z2) * y3) / ((zi - z2) * (zi - z3) * (z2 - z3));
+        zv = (z2 - zi)/td;
+        xf = ((z2 * z3 * (z2 - z3) * xi + z3 * zi * (z3 - zi) * x2 + zi * z2 * (zi - z2) * x3) / ((zi - z2) * (zi - z3) * (z2 - z3)))  * 0.5 + xf * 0.5;
+        yf = ((z2 * z3 * (z2 - z3) * yi + z3 * zi * (z3 - zi) * y2 + zi * z2 * (zi - z2) * y3) / ((zi - z2) * (zi - z3) * (z2 - z3)))  * 0.5 + yf * 0.5;
     }
 
     if (yf < -dyGround) {
         yf = -dyGround - (yf + dyGround);
     }
 
-    hyp = sqrt(xi*xi + yi*yi);
-    //hyp = sqrt(xf*xf + yf*yf);
+    trackX = xf;
+    trackY = yf;
+
+
+    if (zv < 0.5) {
+        trackX = xi;
+        trackY = yi;
+    }
+
+    hyp = sqrt(trackX*trackX + trackY*trackY);
     if (hyp > maxArmLength) hyp = maxArmLength;
     if (hyp < minArmLength) hyp = minArmLength;
 
-    angle2 = acos((hyp*hyp - innerArmLength*innerArmLength - outerArmLength*outerArmLength)/(2*innerArmLength*outerArmLength));
-    angle1 = atan2(yi,xi) - atan((outerArmLength*sin(angle2))/(innerArmLength+outerArmLength*cos(angle2)));
+    double prevA2 = angle2;
+    double prevA1 = angle1;
 
-    //angle2 = acos((hyp*hyp - innerArmLength*innerArmLength - outerArmLength*outerArmLength)/(2*innerArmLength*outerArmLength));
-    //angle1 = atan2(yf,xf) - atan((outerArmLength*sin(angle2))/(innerArmLength+outerArmLength*cos(angle2)));
-
+    angle2 = acos((hyp*hyp - squareSumArmLength)/(outInArm2));
+    angle1 = atan2(trackY,trackX) - atan((outerArmLength*sin(angle2))/(innerArmLength+outerArmLength*cos(angle2)));
     angle2 += angle1;
-    if (xi < 0) {
+
+    if (trackX < 0) {
         angle1 += M_PI;
         angle2 += M_PI;
     }
 
-    innerCount = angle1/(2*M_PI) * stepCount;
+    angle1 = angle1*0.5 + 0.5*prevA1;
+    angle2 = angle2*0.5 + 0.5*prevA2;
+
+    innerCount = ((trackX > 0 ? M_PI : 0) + atan(trackY/trackX))/(2*M_PI) * stepCount;
     outerCount = angle2/(2*M_PI) * stepCount;
 
-    //RD.SetCommand(_P, innerMotor, innerCount);
+    RD.SetCommand(_P, innerMotor, innerCount);
     //RD.SetCommand(_P, outerMotor, outerCount);
 }
 
@@ -363,7 +383,6 @@ void GetCooridnates(VideoCapture capture, double* x, double* y, Mat* cameraFeed,
     long long start = PerformanceCounter();
     capture.read(*cameraFeed);
     if (LeftCam) readt += timeOfFunction(start, "read");
-    //if (LeftCam) *cameraFeed = *cameraFeed*1;
 
     // Converts frame from BGR to HSV colorspace
     if (LeftCam) start = PerformanceCounter();
@@ -373,7 +392,7 @@ void GetCooridnates(VideoCapture capture, double* x, double* y, Mat* cameraFeed,
     // Filters HSV image between values and store filtered image to
     // threshold matrix
     if (LeftCam) start = PerformanceCounter();
-    inRange(*HSV,Scalar(0,100,154),Scalar(10,164,255),*threshold);
+    inRange(*HSV,Scalar(HMin,SMin,VMin),Scalar(HMax,SMax,VMax),*threshold);
     if (LeftCam) inRanget += timeOfFunction(start, "inRange");
 
     // Performs morphological operations on thresholded image to eliminate noise
@@ -412,10 +431,10 @@ void findRealandPosition(double xcL, double ycL, double xcR, double ycR, Mat pro
         x3 = x2; y3 = y2; z3 = z2;
         x2 = xi; y2 = yi; z2 = zi; t2 = ti;
 
-        xi = -P.at<double>(0,0)/P.at<double>(3,0);
+        xi = P.at<double>(0,0)/P.at<double>(3,0);
         yi = P.at<double>(1,0)/P.at<double>(3,0);
         zi = -P.at<double>(2,0)/P.at<double>(3,0);
-        ti = (PerformanceCounter() / PerformanceFrequency()) * 1000000.0;
+        ti = PerformanceCounter();
 
         findFinalAndAngles();
     }
@@ -473,6 +492,8 @@ int main(int argc, char* argv[]) {
 
     maxArmLength = innerArmLength + outerArmLength;
     minArmLength = abs(innerArmLength - outerArmLength);
+    squareSumArmLength = innerArmLength*innerArmLength + outerArmLength*outerArmLength;
+    outInArm2 = 2*innerArmLength*outerArmLength;
 
 	VideoCapture captureL(2); //2
 	VideoCapture captureR(1); //1
@@ -496,7 +517,7 @@ int main(int argc, char* argv[]) {
     namedWindow(windowNameR1, WINDOW_NORMAL);
     namedWindow(windowNameR2, WINDOW_NORMAL);
 
-    //configureRoboteq();
+    configureRoboteq();
 
 	while(1) {
         thread cameraL(GetCooridnates, captureL, &xcL, &ycL, &cameraFeedL, &HSVL, &thresholdL, &objectFoundL, showCrossHairs, true);
@@ -523,20 +544,20 @@ int main(int argc, char* argv[]) {
             cout << "findCirlces: " << findCirlcest / frameCounter << endl;
             cout << "calcPosition: " << calcPositiont / frameCounter << endl;
             cout << "xi: " << xi << ", yi: " << yi << ", zi: " << zi << endl;
+            cout << "xv: " << xv << ", yv: " << yv << ", zv: " << zv << ", td: " << td << endl;
             cout << "xf: " << xf << ", yf: " << yf << endl;
             frameCounter = 0; readt = 0; cvtColort = 0; inRanget = 0; morphOpst = 0; trackFilteredObjectt = 0, findCirlcest = 0, calcPositiont = 0;
         }
 
-        drawMotorSym(motorSym);
+        //drawMotorSym(motorSym);
 
-/*         motorSym = Mat::zeros( frameHeight, frameWidth, CV_8UC3 );
- *         int radius = 180;
- *         int x2 = radius*cos((xi > 0 ? M_PI : 0) + atan(yi/xi))+frameWidth/2;
- *         int y2 = radius*sin((xi > 0 ? M_PI : 0) + atan(yi/xi))+frameHeight/2;
- *         circle( motorSym, Point( frameWidth/2, frameHeight/2 ), radius, Scalar( 0, 0, 255 ), 1, 8 );
- *         line( motorSym, Point(frameWidth/2, frameHeight/2), Point(x2, y2), Scalar( 110, 220, 0 ),  2, 8 );
- *         imshow("motors",motorSym);
- */
+        motorSym = Mat::zeros( frameHeight, frameWidth, CV_8UC3 );
+        int radius = 180;
+        int x2 = radius*cos((trackX > 0 ? M_PI : 0) + atan(trackY/trackX))+frameWidth/2;
+        int y2 = radius*sin((trackX > 0 ? M_PI : 0) + atan(trackY/trackX))+frameHeight/2;
+        circle( cameraFeedL, Point( frameWidth/2, frameHeight/2 ), radius, Scalar( 0, 0, 255 ), 1, 8 );
+        line( cameraFeedL, Point(frameWidth/2, frameHeight/2), Point(x2, y2), Scalar( 110, 220, 0 ),  7, 8 );
+        imshow("motors",cameraFeedL);
 
         if (GetAsyncKeyState(VK_CAPITAL))
             showWindows = !showWindows;
