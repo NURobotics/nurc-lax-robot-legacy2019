@@ -1,19 +1,19 @@
 #include <sstream>
 #include <string>
 #include <iostream>
-#include <ctime>
-#include <chrono>
-
-// #include <thread>
+#include <thread>
+#include <Windows.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
-#include "opencv2/videoio/videoio.hpp"
+
+#include "RoboteqDevice.h"
+#include "ErrorCodes.h"
+#include "Constants.h"
 
 using namespace cv;
 using namespace std;
-using namespace std::chrono;
 
 // Initial min and max HSV filter values.
 int HMin = 0;
@@ -38,8 +38,8 @@ const Mat erodeElement = getStructuringElement(MORPH_RECT,Size(6,6));
 const Mat dilateElement = getStructuringElement(MORPH_RECT,Size(16,16));
 
 // Declaring Time Variables
-high_resolution_clock::time_point ti;
-high_resolution_clock::time_point t2;
+double ti = 0;
+double t2 = 0;
 double td = 0;
 double dt = 0;
 
@@ -107,6 +107,7 @@ bool objectFoundR = false;
 bool showCrossHairs = true;
 bool showWindows = false;
 
+RoboteqDevice RD;
 const int innerMotor = 1;
 const int outerMotor = 2;
 const int motorRPM = 1000;
@@ -138,12 +139,51 @@ string intToString(int number) {
 	return ss.str();
 }
 
-double timeOfFunction(high_resolution_clock::time_point start, string func) {
-	high_resolution_clock::time_point finish = high_resolution_clock::now();
-	double elapsedMilliseconds = duration_cast<milliseconds>(finish - start).count() / 1000.0 ;
+inline long long PerformanceCounter()
+{
+    LARGE_INTEGER li;
+    ::QueryPerformanceCounter(&li);
+    return li.QuadPart;
+}
+
+inline long long PerformanceFrequency()
+{
+    LARGE_INTEGER li;
+    ::QueryPerformanceFrequency(&li);
+    return li.QuadPart;
+}
+
+double timeOfFunction(long long start, string func) {
+	long long finish = PerformanceCounter();
+	double elapsedMilliseconds = ((finish - start) * 1000.0) / PerformanceFrequency();
 	return elapsedMilliseconds;
 	//cout << func << ": " << elapsedMilliseconds << endl;
 }
+
+void configureRoboteq() {
+    int status;
+    cout << "Connecting to Roboteq...";
+	if((status = RD.Connect(port)) != RQ_SUCCESS){
+		cout << "Error connecting to device --> " << status << "." << endl;
+		return;
+	}
+	else
+        cout << "succeeded!";
+
+    RD.SetCommand(_P, innerMotor, 0/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, (M_PI/2)/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, M_PI/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, (3*M_PI/2)/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, (2*M_PI)/(2*M_PI) * stepCount);
+    waitKey(1000);
+    RD.SetCommand(_P, innerMotor, 0/(2*M_PI) * stepCount);
+    waitKey(1000);
+}
+
 
 void createTrackbars() {
 
@@ -280,7 +320,7 @@ void findFinalAndAngles() {
         return;
     }
     if (amountFound == 2) {
-        td = duration_cast<milliseconds>(ti - t2).count() / 1000;
+        td = (ti - t2)/PerformanceFrequency();
 
         zv = (z2 - zi)/td;
         xv = (x2 - xi)/td;
@@ -332,47 +372,49 @@ void findFinalAndAngles() {
     innerCount = ((trackX > 0 ? M_PI : 0) + atan(trackY/trackX))/(2*M_PI) * stepCount;
     outerCount = angle2/(2*M_PI) * stepCount;
 
+    RD.SetCommand(_P, innerMotor, innerCount);
+    //RD.SetCommand(_P, outerMotor, outerCount);
 }
 
 void GetCooridnates(VideoCapture capture, double* x, double* y, Mat* cameraFeed, Mat* HSV, Mat* threshold, bool* objectFound, bool showCrossHairs, bool LeftCam) {
 	vector<Vec3f> circles;
 
     // Stores the image to matrix
-    auto start = high_resolution_clock::now();
+    long long start = PerformanceCounter();
     capture.read(*cameraFeed);
     if (LeftCam) readt += timeOfFunction(start, "read");
 
     // Converts frame from BGR to HSV colorspace
-    if (LeftCam) start = high_resolution_clock::now();
+    if (LeftCam) start = PerformanceCounter();
     cvtColor(*cameraFeed,*HSV,COLOR_BGR2HSV);
     if (LeftCam) cvtColort += timeOfFunction(start, "cvtColor");
 
     // Filters HSV image between values and store filtered image to
     // threshold matrix
-    if (LeftCam) start = high_resolution_clock::now();
+    if (LeftCam) start = PerformanceCounter();
     inRange(*HSV,Scalar(HMin,SMin,VMin),Scalar(HMax,SMax,VMax),*threshold);
     if (LeftCam) inRanget += timeOfFunction(start, "inRange");
 
     // Performs morphological operations on thresholded image to eliminate noise
     // and emphasize the filtered object(s)
-    if (LeftCam) start = high_resolution_clock::now();
+    if (LeftCam) start = PerformanceCounter();
     morphOps(*threshold);
     if (LeftCam) morphOpst += timeOfFunction(start, "morphOps");
 
     // Passes in thresholded frame to our object tracking function
     // this function will return the x and y coordinates of the
     // filtered object
-    if (LeftCam) start = high_resolution_clock::now();
+    if (LeftCam) start = PerformanceCounter();
     trackFilteredObject(*x,*y,*threshold,*cameraFeed,*objectFound,showCrossHairs);
     if (LeftCam) trackFilteredObjectt += timeOfFunction(start, "trackFilteredObject");
 
-    if (LeftCam) start = high_resolution_clock::now();
+    if (LeftCam) start = PerformanceCounter();
     //findCirlces(showCrossHairs, threshold, cameraFeed, circles);
     if (LeftCam) findCirlcest += timeOfFunction(start, "findCircles");
 }
 
 void findRealandPosition(double xcL, double ycL, double xcR, double ycR, Mat projL, Mat projR) {
-    auto start = high_resolution_clock::now();
+    long long start = PerformanceCounter();
     if (objectFoundL && objectFoundR) {
         amountFound++;
 
@@ -392,7 +434,7 @@ void findRealandPosition(double xcL, double ycL, double xcR, double ycR, Mat pro
         xi = P.at<double>(0,0)/P.at<double>(3,0);
         yi = P.at<double>(1,0)/P.at<double>(3,0);
         zi = -P.at<double>(2,0)/P.at<double>(3,0);
-        ti = high_resolution_clock::now();
+        ti = PerformanceCounter();
 
         findFinalAndAngles();
     }
@@ -475,12 +517,16 @@ int main(int argc, char* argv[]) {
     namedWindow(windowNameR1, WINDOW_NORMAL);
     namedWindow(windowNameR2, WINDOW_NORMAL);
 
-    //configureRoboteq();
+    configureRoboteq();
 
 	while(1) {
-        GetCooridnates(captureL, &xcL, &ycL, &cameraFeedL, &HSVL, &thresholdL, &objectFoundL, showCrossHairs, true);
-        GetCooridnates(captureR, &xcR, &ycR, &cameraFeedR, &HSVR, &thresholdR, &objectFoundR, showCrossHairs, false);
-        findRealandPosition(xcL, ycL, xcR, ycR, projL, projR);
+        thread cameraL(GetCooridnates, captureL, &xcL, &ycL, &cameraFeedL, &HSVL, &thresholdL, &objectFoundL, showCrossHairs, true);
+        thread cameraR(GetCooridnates, captureR, &xcR, &ycR, &cameraFeedR, &HSVR, &thresholdR, &objectFoundR, showCrossHairs, false);
+        thread angles(findRealandPosition, xcL, ycL, xcR, ycR, projL, projR);
+
+        cameraL.join();
+        cameraR.join();
+        angles.join();
 
         // Extra stuff used for testing time and showing windows
 
@@ -512,6 +558,9 @@ int main(int argc, char* argv[]) {
         circle( cameraFeedL, Point( frameWidth/2, frameHeight/2 ), radius, Scalar( 0, 0, 255 ), 1, 8 );
         line( cameraFeedL, Point(frameWidth/2, frameHeight/2), Point(x2, y2), Scalar( 110, 220, 0 ),  7, 8 );
         imshow("motors",cameraFeedL);
+
+        if (GetAsyncKeyState(VK_CAPITAL))
+            showWindows = !showWindows;
 
         // Show Frames if caps lock is on
         if (showWindows) {
