@@ -140,13 +140,13 @@ int main(int argc, char* argv[]) {
   const Mat distortion_coeffsL(5, 1, CV_64F, distortion_coeffsLData);
   const Mat distortion_coeffsR(5, 1, CV_64F, distortion_coeffsRData);
 
-	Camera* captureL = new Camera("Left Cam", 1, projL, KL, distortion_coeffsL);
-	Camera* captureR = new Camera("Right Cam", 1, projR, KR, distortion_coeffsr);
+  Camera* captureL = new Camera("Left Cam", 1, projL, KL, distortion_coeffsL);
+  Camera* captureR = new Camera("Right Cam", 1, projR, KR, distortion_coeffsr);
   
   TickMeter timerL;
   TickMeter timerR;
 
-	createTrackbars();
+  createTrackbars();
   bool showWindows = false;
   
   MainEvent mainEvent(captureL, &timerL, &page_lockedL, &frameL,
@@ -156,11 +156,11 @@ int main(int argc, char* argv[]) {
   timerL.start();
   timerR.start();
 
-	for (;;) {
+  for (;;) {
     frameTime = 0;
-    
+
     parallel_for_(Range(0, 3), mainEvent);
-    
+
     if (showWindows) {      
       captureL->drawObject();
       captureR->drawObject();
@@ -171,11 +171,11 @@ int main(int argc, char* argv[]) {
       captureL->showThreshold();
       captureR->showThreshold();
     }
-    
+
     char c = (char) waitKey( 1 );
     if( c == 'p' )
       showWindows = !showWindows;
-	}
+  }
 
-	return 0;
+  return 0;
 }
