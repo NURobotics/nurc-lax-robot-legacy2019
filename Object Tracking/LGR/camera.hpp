@@ -35,12 +35,20 @@ namespace LGR {
     Mat outputThreshold;
     
     bool ballFound = false;
+    double ballPixelX;
+    double ballPixelY;
     
     double FrametoHSV(TickMeter* t, HostMem* p_l, Mat* frame);
     void GetThreshold(GpuMat HSVMin, GpuMat HSVMax);
     Mat FindBallPixels();
     Mat findBall();
     Mat trackBall();
+    
+    void drawObject();
+    
+    void showOriginal();
+    void showHSV();
+    void showThreshold();
     
     void print();
         
@@ -98,8 +106,8 @@ namespace LGR {
     vector<Vec4i> hierarchy;
     Mat undistoredCoord;
     Mat ballCoord(1, 1, CV_64FC2);
-    ballCoord.at<Vec2d>(0,0)[0] = 0;
-    ballCoord.at<Vec2d>(0,0)[1] = 0;
+    ballPixelX = 0;
+    ballPixelY = 0;
 
     findContours(outputThreshold, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 
@@ -115,8 +123,8 @@ namespace LGR {
 	        double area = moment.m00;
 	
 	        if (area > MIN_OBJECT_AREA && area < MAX_OBJECT_AREA && area > refArea) {
-		        ballCoord.at<Vec2d>(0,0)[0] = moment.m10/area;
-		        ballCoord.at<Vec2d>(0,0)[1] = moment.m01/area;
+		        ballPixelX = moment.m10/area;
+		        ballPixelY = moment.m01/area;
 		        ballFound = true;
 		        refArea = area;
 	        } 
@@ -126,6 +134,9 @@ namespace LGR {
         }
       }
     }
+    
+    ballCoord.at<Vec2d>(0,0)[0] = ballPixelX;
+    ballCoord.at<Vec2d>(0,0)[1] = ballPixelY;
     
     if (ballFound) {
       undistortPoints(ballCoord, undistoredCoord, K, distortion_coeffs);
@@ -146,6 +157,43 @@ namespace LGR {
     else {
       return findBall();
     }
+  }
+  
+  void Camera::drawObject() {
+    
+    circle(currFrameInt,cvPoint(ballPixelX,ballPixely),20,cvScalar(0,255,0),2);
+    if (ballPixely-25>0)
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,ballPixely-25),Scalar(0,255,0),2);
+    else
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,0),Scalar(0,255,0),2);
+    if (ballPixely+25<frameHeight)
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,ballPixely+25),Scalar(0,255,0),2);
+    else
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,frameHeight),Scalar(0,255,0),2);
+    if (ballPixelX-25>0)
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX-25,ballPixely),Scalar(0,255,0),2);
+    else
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(0,ballPixely),Scalar(0,255,0),2);
+    if (ballPixelX+25<frameWidth)
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX+25,ballPixely),Scalar(0,255,0),2);
+    else 
+      line(currFrameInt,Point(ballPixelX,ballPixely),Point(frameWidth,ballPixely),Scalar(0,255,0),2);
+
+    putText(currFrameInt,intToString(ballPixelX)+","+intToString(ballPixely),Point(ballPixelX,ballPixely+30),1,1,Scalar(0,255,0),2);
+  }
+  
+  void Camera::showOriginal() {
+    imshow(name + " Original Image", currFrameInt);
+  }
+  
+  void Camera::showHSV() {
+    Mat f;
+    HSV.download(f);
+    imshow(name + " HSV Image", f);
+  }
+  
+  void Camera::showThreshold() {
+    imshow(name + " Threshold Image", outputThreshold);
   }
   
   void Camera::print() {

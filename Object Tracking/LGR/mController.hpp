@@ -34,22 +34,22 @@ namespace LGR {
     void reset();
   };
   
-  void mController::calcCounts(Robot r) {
-    double hyp = sqrt(r.DestX*r.DestX + r.DestY*r.DestX);
-    if (hyp > r.maxArmLen) hyp = r.maxArmLen;
-    if (hyp < r.minArmLen) hyp = r.minArmLen;
+  void mController::calcCounts(Robot* r) {
+    double hyp = sqrt(r->DestX*r->DestX + r->DestY*r->DestX);
+    if (hyp > r->maxArmLen) hyp = r->maxArmLen;
+    if (hyp < r->minArmLen) hyp = r->minArmLen;
 
-    r.Motor2Angle = acos((hyp*hyp - r.squareSumArmLen)/(r.outInArm2));
-    r.Motor1Angle = atan2(r.DestY, r.DestX) - atan((r.outerArmLen*sin(r.Motor2Angle))/(r.innerArmLen+r.outerArmLen*cos(r.Motor2Angle)));
-    r.Motor2Angle += r.Motor1Angle;
+    r->Motor2Angle = acos((hyp*hyp - r->squareSumArmLen)/(r->outInArm2));
+    r->Motor1Angle = atan2(r->DestY, r->DestX) - atan((r->outerArmLen*sin(r->Motor2Angle))/(r->innerArmLen+r->outerArmLen*cos(r->Motor2Angle)));
+    r->Motor2Angle += r->Motor1Angle;
 
-    if (r.DestX < 0) {
-        r.Motor1Angle += CV_PI;
-        r.Motor2Angle += CV_PI;
+    if (r->DestX < 0) {
+        r->Motor1Angle += CV_PI;
+        r->Motor2Angle += CV_PI;
     }
 
-    innerCount = ((r.DestX > 0 ? CV_PI : 0) + atan(r.DestY/r.DestX))/(2*CV_PI) * innerStepCount;
-    outerCount = r.Motor2Angle/(2*CV_PI) * outerStepCount;
+    innerCount = ((r->DestX > 0 ? CV_PI : 0) + atan(r->DestY/r->DestX))/(2*CV_PI) * innerStepCount;
+    outerCount = r->Motor2Angle/(2*CV_PI) * outerStepCount;
   }
   
   void mController::sendAngles() {
