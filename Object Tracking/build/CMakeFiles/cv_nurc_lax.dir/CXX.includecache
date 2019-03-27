@@ -1,0 +1,96 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/HSV.hpp
+iostream
+-
+vector
+-
+LGR/constants.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/LGR/constants.hpp
+
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/axis.hpp
+iostream
+-
+LGR/constants.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/LGR/constants.hpp
+
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/ball.hpp
+iostream
+-
+opencv2/core/core.hpp
+-
+LGR/constants.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/LGR/constants.hpp
+
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/camera.hpp
+iostream
+-
+opencv2/core/core.hpp
+-
+opencv2/videoio/videoio.hpp
+-
+opencv2/core/cuda.hpp
+-
+opencv2/imgproc/imgproc.hpp
+-
+opencv2/cudaarithm.hpp
+-
+opencv2/cudaimgproc.hpp
+-
+opencv2/cudafilters.hpp
+-
+LGR/constants.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/LGR/constants.hpp
+
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/mController.hpp
+iostream
+-
+opencv2/core/core.hpp
+-
+LGR/constants.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/LGR/constants.hpp
+
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/robot.hpp
+iostream
+-
+opencv2/core/core.hpp
+-
+LGR/constants.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/LGR/constants.hpp
+
+/mnt/c/Users/Albert III/Downloads/Object Tracking/main.cpp
+string
+-
+iostream
+-
+opencv2/core/core.hpp
+-
+opencv2/highgui/highgui.hpp
+-
+opencv2/imgproc/imgproc.hpp
+-
+opencv2/calib3d/calib3d.hpp
+-
+opencv2/videoio/videoio.hpp
+-
+opencv2/core/cuda.hpp
+-
+LGR/axis.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/axis.hpp
+LGR/HSV.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/HSV.hpp
+LGR/camera.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/camera.hpp
+LGR/robot.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/robot.hpp
+LGR/mController.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/mController.hpp
+LGR/ball.hpp
+/mnt/c/Users/Albert III/Downloads/Object Tracking/LGR/ball.hpp
+

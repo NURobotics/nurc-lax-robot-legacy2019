@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/cv_nurc_lax.dir/main.cpp.o  -o cv_nurc_lax -rdynamic -lC:/opencv/build/include 
