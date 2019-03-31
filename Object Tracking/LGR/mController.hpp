@@ -1,7 +1,7 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 
-#include "../Roboteq/RoboteqDevice.h"
+#include "../Roboteq/RoboteqDevice.cpp"
 #include "../Roboteq/ErrorCodes.h"
 #include "../Roboteq/Constants.h"
 #include "constants.hpp"
@@ -10,8 +10,8 @@ using namespace std;
 
 namespace LGR {
   struct mController {
-    int innerIndex;
-    int outerIndex;
+    const int innerIndex = 1;
+    const int outerIndex = 2;
     
     const int innerRPM = 747;
     const int outerRPM = 747;
@@ -19,14 +19,14 @@ namespace LGR {
     const int innerStepCount = 2000;
     const int outerStepCount = 2000;
     
-    const string port = "\\\\.\\com3"
+    const string port = "\\\\.\\com3";
     
     RoboteqDevice RD;
     
     int innerCount;
     int outerCount;
     
-    void calcCounts(robot r);
+    void calcCounts(Robot* r);
     void sendAngles();
     void configure();
     
@@ -53,8 +53,8 @@ namespace LGR {
   }
   
   void mController::sendAngles() {
-    RD.SetCommand(_P, innerMotor, innerCount);
-    RD.SetCommand(_P, outerMotor, outerCount);
+    RD.SetCommand(_P, innerIndex, innerCount);
+    RD.SetCommand(_P, outerIndex, outerCount);
   }
   
   void mController::configure() {
@@ -70,8 +70,8 @@ namespace LGR {
   }
   
   void mController::reset() {
-    innerIndex = 0;
-    outerIndex = 0;
+    innerCount = 0;
+    outerCount = 0;
   }
   
   void mController::print() {

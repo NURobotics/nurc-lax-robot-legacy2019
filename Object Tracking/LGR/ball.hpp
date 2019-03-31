@@ -1,9 +1,7 @@
 #include <iostream>
-#include <opencv2/core/core.hpp>
-
 #include "constants.hpp"
 
-using namespace sdt;
+using namespace std;
 
 namespace LGR {
   struct Ball {
@@ -16,7 +14,7 @@ namespace LGR {
     int consecFramesFound = 0;
     
     void nextCoords(double newX, double newY, double newZ);
-    void calcFinalPos(double dt, robot r);
+    void calcFinalPos(double dt, Robot* r);
     
     void print();
     void reset();

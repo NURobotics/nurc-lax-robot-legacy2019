@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_FLAGS =   -std=gnu++11
 
-CXX_DEFINES = 
+CXX_DEFINES = -DOPENCV_TRAITS_ENABLE_DEPRECATED
 
-CXX_INCLUDES = -I"/mnt/c/Users/Albert III/Downloads/Object Tracking/C:/opencv/build/include" 
+CXX_INCLUDES = -isystem /usr/local/include -isystem /usr/local/include/opencv -I/usr/local/cuda-9.0/include 
 

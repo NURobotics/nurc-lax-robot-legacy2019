@@ -1,9 +1,12 @@
 #include <iostream>
 #include <vector>
+#include <opencv2/core/core.hpp>
 
 #include "constants.hpp"
 
 using namespace std;
+using namespace cv;
+using namespace cv::cuda;
 
 namespace LGR {
   struct HSVvalues {
@@ -14,7 +17,7 @@ namespace LGR {
     int VMin = 0;
     int VMax = 255;
     
-    Mat HSVMin, HSVMax;
+    Mat HSVMin , HSVMax;
     GpuMat HSVMinG, HSVMaxG;
         
     void calcValues();
@@ -27,8 +30,10 @@ namespace LGR {
     HSVMin.create(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
     HSVMax.create(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC4);
     
-    vector<Mat> minChannels(4);
-    vector<Mat> maxnChannels(4);
+    Mat c1(FRAME_HEIGHT, FRAME_WIDTH, CV_8U);
+    
+    vector<Mat> minChannels(4, c1);
+    vector<Mat> maxChannels(4, c1);
     
     minChannels[0] = HMin;
     minChannels[1] = SMin;

@@ -3,6 +3,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/calib3d.hpp>
 
 #include "LGR/axis.hpp"
 #include "LGR/HSV.hpp"
@@ -21,8 +22,8 @@ Ball* LAXBall = new Ball();
 Robot* LAXBot = new Robot();
 mController* Roboteq = new mController();
 
-const double projLData[] = {1072.6, 0, 680.724, -194.14, 0, 1073.69, 383.223, 0, 0, 0, 1, 0};
-const double projRData[] = {1051.57, 0, 630.838, 190.334, 0, 1052.83, 341.993, 0, 0, 0, 1, 0};
+double projLData[] = {1072.6, 0, 680.724, -194.14, 0, 1073.69, 383.223, 0, 0, 0, 1, 0};
+double projRData[] = {1051.57, 0, 630.838, 190.334, 0, 1052.83, 341.993, 0, 0, 0, 1, 0};
 
 const Mat projL(3, 4, CV_64F, projLData);
 const Mat projR(3, 4, CV_64F, projRData);
@@ -39,16 +40,16 @@ void on_trackbar(int, void*) {
 }
 
 void createTrackbars() {
-
-  namedWindow(trackbarWindowName,0);
+  string trackbarWindowName = "HSV Trackbars";
+  namedWindow(trackbarWindowName, 0);
 
   char TrackbarName[50];
-  sprintf( TrackbarName, "HMin", HSV.HMin);
-  sprintf( TrackbarName, "HMax", HSV.HMax);
-  sprintf( TrackbarName, "SMin", HSV.SMin);
-  sprintf( TrackbarName, "SMax", HSV.SMax);
-  sprintf( TrackbarName, "VMin", HSV.VMin);
-  sprintf( TrackbarName, "VMax", HSV.VMax);
+  sprintf(TrackbarName, "HMin");
+  sprintf(TrackbarName, "HMax");
+  sprintf(TrackbarName, "SMin");
+  sprintf(TrackbarName, "SMax");
+  sprintf(TrackbarName, "VMin");
+  sprintf(TrackbarName, "VMax");
 
   createTrackbar( "HMin", trackbarWindowName, &HSV.HMin, HSV.HMax, on_trackbar );
   createTrackbar( "HMax", trackbarWindowName, &HSV.HMax, HSV.HMax, on_trackbar );
@@ -59,10 +60,10 @@ void createTrackbars() {
 }
 
 Mat GetCooridnates(Camera* capture, TickMeter* t, HostMem* p_l, Mat* frame) {
-  frameTime += capture.FrametoHSV(t, p_l, frame);
-  capture.GetThreshold(HSV.HSVMinG, HSV.HSVMaxG);
+  frameTime += capture->FrametoHSV(t, p_l, frame);
+  capture->GetThreshold(HSV.HSVMinG, HSV.HSVMaxG);
   
-  return capture.FindBallPixels();
+  return capture->FindBallPixels();
 }
 
 void MoveRobot() {
@@ -71,10 +72,9 @@ void MoveRobot() {
   LAXBall->nextCoords(P.at<double>(0,0)/P.at<double>(3,0),
                      P.at<double>(1,0)/P.at<double>(3,0),
                      -P.at<double>(2,0)/P.at<double>(3,0));
-                     
-  frameTime /= 2;
+                  
   
-  LAXBall->calcFinalPos(frameTime, LAXBot);
+  LAXBall->calcFinalPos(frameTime/2, LAXBot);
   Roboteq->calcCounts(LAXBot);
   //Roboteq->sendAngles();
 }
@@ -84,7 +84,7 @@ class MainEvent : public ParallelLoopBody {
     MainEvent(Camera* captureL, TickMeter* timerL, HostMem* page_lockedL, Mat* frameL,
               Camera* captureR, TickMeter* timerR, HostMem* page_lockedR, Mat* frameR)
                 : p_captureL(captureL), p_timerL(timerL), p_page_lockedL(page_lockedL), p_frameL(frameL),
-                : p_captureR(captureR), p_timerR(timerR), p_page_lockedR(page_lockedR), p_frameR(frameR) {}
+                  p_captureR(captureR), p_timerR(timerR), p_page_lockedR(page_lockedR), p_frameR(frameR) {}
                 
     virtual void operator ()(const Range& range) const {
       for (int r = range.start; r < range.end; r++) {
@@ -98,7 +98,7 @@ class MainEvent : public ParallelLoopBody {
               MoveRobot();
             }
             else {
-              LAXBall.reset();
+              LAXBall->reset();
             }
             break;
         }
@@ -118,36 +118,39 @@ class MainEvent : public ParallelLoopBody {
     TickMeter* p_timerR;
     HostMem* p_page_lockedR;
     Mat* p_frameR;
-}
+};
 
 int main(int argc, char* argv[]) {
 
-  HostMem page_lockedL(Size(FRAME_WIDTH, FRAME_HEIGHT), CV_8UC3);
-  HostMem page_lockedR(Size(FRAME_WIDTH, FRAME_HEIGHT), CV_8UC3);
+  HostMem page_lockedL(Size(FRAME_WIDTH, FRAME_HEIGHT), CV_8UC4);
+  HostMem page_lockedR(Size(FRAME_WIDTH, FRAME_HEIGHT), CV_8UC4);
   
-  Mat frameL = page_lockedL;
-  Mat frameR = page_lockedR;
+  Mat frameL = page_lockedL.createMatHeader();
+  Mat frameR = page_lockedR.createMatHeader();
 
-  const double KLData[] = {1072.6, 0, 680.724, 0, 1073.69, 383.223, 0, 0, 1};
-  const double KRData[] = {1051.57, 0, 630.838, 0, 1052.83, 341.993, 0, 0, 1};
+  double KLData[] = {1072.6, 0, 680.724, 0, 1073.69, 383.223, 0, 0, 1};
+  double KRData[] = {1051.57, 0, 630.838, 0, 1052.83, 341.993, 0, 0, 1};
 
   const Mat KL(3, 3, CV_64F, KLData);
   const Mat KR(3, 3, CV_64F, KRData);
 
-  const double distortion_coeffsLData[] = {-0.407242, 0.163507, -0.000309831, 0.00123473, 0};
-  const double distortion_coeffsRData[] = {-0.395033, 0.15755, 6.48855e-005, 0.000488116, 0};
+  double distortion_coeffsLData[] = {-0.407242, 0.163507, -0.000309831, 0.00123473, 0};
+  double distortion_coeffsRData[] = {-0.395033, 0.15755, 6.48855e-005, 0.000488116, 0};
 
   const Mat distortion_coeffsL(5, 1, CV_64F, distortion_coeffsLData);
   const Mat distortion_coeffsR(5, 1, CV_64F, distortion_coeffsRData);
 
   Camera* captureL = new Camera("Left Cam", 1, projL, KL, distortion_coeffsL);
-  Camera* captureR = new Camera("Right Cam", 1, projR, KR, distortion_coeffsr);
+  Camera* captureR = new Camera("Right Cam", 2, projR, KR, distortion_coeffsR);
   
   TickMeter timerL;
   TickMeter timerR;
+  TickMeter timerT;
 
   createTrackbars();
   bool showWindows = false;
+  
+  HSV.calcValues();
   
   MainEvent mainEvent(captureL, &timerL, &page_lockedL, &frameL,
                       captureR, &timerR, &page_lockedR, &frameR);
@@ -168,9 +171,14 @@ int main(int argc, char* argv[]) {
       captureL->showOriginal();
       captureR->showOriginal();
       
+      //captureL->showHSV();
+      //captureR->showHSV();
+      
       captureL->showThreshold();
       captureR->showThreshold();
     }
+    
+    cout << "FPS: " << 1/frameTime/2 << endl;
 
     char c = (char) waitKey( 1 );
     if( c == 'p' )

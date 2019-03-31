@@ -4,13 +4,20 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/mnt/c/Users/Albert III/Downloads/Object Tracking/main.cpp" "/mnt/c/Users/Albert III/Downloads/Object Tracking/build/CMakeFiles/cv_nurc_lax.dir/main.cpp.o"
+  "/home/nvidia/nurc-lax-robot-master/Object Tracking/main.cpp" "/home/nvidia/nurc-lax-robot-master/Object Tracking/build/CMakeFiles/cv_nurc_lax.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
+# Preprocessor definitions for this target.
+set(CMAKE_TARGET_DEFINITIONS_CXX
+  "OPENCV_TRAITS_ENABLE_DEPRECATED"
+  )
+
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "../C:/opencv/build/include"
+  "/usr/local/include"
+  "/usr/local/include/opencv"
+  "/usr/local/cuda-9.0/include"
   )
 
 # Targets to which this target links.

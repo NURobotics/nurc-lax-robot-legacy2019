@@ -1,5 +1,7 @@
 #include <iostream>
+#include <string>
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/videoio/videoio.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -56,6 +58,9 @@ namespace LGR {
     
     const Mat erodeElement = getStructuringElement(MORPH_RECT,Size(6,6));
     const Mat dilateElement = getStructuringElement(MORPH_RECT,Size(16,16));
+    
+    const Ptr<Filter> erodeFilter = cuda::createMorphologyFilter(MORPH_ERODE, CV_8UC1, erodeElement);
+    const Ptr<Filter> dialateFilter = cuda::createMorphologyFilter(MORPH_DILATE, CV_8UC1, dilateElement);
   };
   
   Camera::Camera(string n, int f, Mat p, Mat k, Mat d) {
@@ -75,13 +80,12 @@ namespace LGR {
   double Camera::FrametoHSV(TickMeter* t, HostMem* p_l, Mat* frame) {
     t->stop();
     double secs = t->getTimeSec();
-    t->start();
-    cap.read(frame);
+    t->reset();
+    t->start(); 
+    cap.read(currFrameInt);
     
-    frame.reshape(4);
-    
-    currFrame.upload(p_l);
-    cuda::cvtColor(currFrame, HSV, COLOR_BGR2HSV);
+    currFrame.upload(currFrameInt);
+    cuda::cvtColor(currFrame, HSV, COLOR_BGR2HSV, 4);
     
     return secs;
   }
@@ -92,10 +96,15 @@ namespace LGR {
     
     cuda::max(HSVMinResult, HSVMaxResult, HSVResult);
     
-    cuda::threshold(HSVResult, threshold, 255, 255, THRESH_BINARY);
+    GpuMat HSVRchannels[4];
+    cuda::split(HSVResult, HSVRchannels);
+    cuda::bitwise_and(HSVRchannels[0], HSVRchannels[1], HSVRchannels[3]);
+    cuda::bitwise_and(HSVRchannels[3], HSVRchannels[2], HSVRchannels[3]);
     
-    cuda::createMorphologyFilter(MORPH_ERODE, CV_8UC4, erodeElement);
-    cuda::createMorphologyFilter(MORPH_DILATE, CV_8UC4, dilateElement);
+    cuda::threshold(HSVRchannels[3], threshold, 255, 255, THRESH_BINARY);
+    
+    erodeFilter->apply(threshold, threshold);
+    dialateFilter->apply(threshold, threshold);
     
     threshold.download(outputThreshold);
   }
@@ -108,7 +117,7 @@ namespace LGR {
     Mat ballCoord(1, 1, CV_64FC2);
     ballPixelX = 0;
     ballPixelY = 0;
-
+    
     findContours(outputThreshold, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 
     // Uses moments method to find our filtered object
@@ -160,26 +169,27 @@ namespace LGR {
   }
   
   void Camera::drawObject() {
-    
-    circle(currFrameInt,cvPoint(ballPixelX,ballPixely),20,cvScalar(0,255,0),2);
-    if (ballPixely-25>0)
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,ballPixely-25),Scalar(0,255,0),2);
-    else
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,0),Scalar(0,255,0),2);
-    if (ballPixely+25<frameHeight)
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,ballPixely+25),Scalar(0,255,0),2);
-    else
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX,frameHeight),Scalar(0,255,0),2);
-    if (ballPixelX-25>0)
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX-25,ballPixely),Scalar(0,255,0),2);
-    else
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(0,ballPixely),Scalar(0,255,0),2);
-    if (ballPixelX+25<frameWidth)
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(ballPixelX+25,ballPixely),Scalar(0,255,0),2);
-    else 
-      line(currFrameInt,Point(ballPixelX,ballPixely),Point(frameWidth,ballPixely),Scalar(0,255,0),2);
+    if (ballFound) {
+      circle(currFrameInt, cvPoint(ballPixelX, ballPixelY), 20, cvScalar(0, 255, 0), 2);
+      if (ballPixelY - 25 > 0)
+        line(currFrameInt,  Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY-25), Scalar(0, 255, 0), 2);
+      else
+        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX, 0), Scalar(0, 255, 0), 2);
+      if (ballPixelY + 25 < FRAME_HEIGHT)
+        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY+25), Scalar(0, 255, 0), 2);
+      else
+        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX,  FRAME_HEIGHT), Scalar(0, 255, 0), 2);
+      if (ballPixelX - 25 > 0)
+        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX-25, ballPixelY), Scalar(0, 255, 0), 2);
+      else
+        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(0, ballPixelY), Scalar(0, 255, 0), 2);
+      if (ballPixelX + 25 < FRAME_WIDTH)
+        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX+25, ballPixelY), Scalar(0, 255, 0), 2);
+      else 
+        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(FRAME_WIDTH, ballPixelY), Scalar(0, 255, 0), 2);
 
-    putText(currFrameInt,intToString(ballPixelX)+","+intToString(ballPixely),Point(ballPixelX,ballPixely+30),1,1,Scalar(0,255,0),2);
+      putText(currFrameInt, to_string(ballPixelX) + ", " + to_string(ballPixelY), Point(ballPixelX, ballPixelY+30), 1, 1, Scalar(0, 255, 0), 2);
+    }
   }
   
   void Camera::showOriginal() {
