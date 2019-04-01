@@ -10,6 +10,7 @@
 #include <opencv2/cudafilters.hpp>
 
 #include "constants.hpp"
+#include "HSV.hpp"
 
 using namespace std;
 using namespace cv;
@@ -29,9 +30,6 @@ namespace LGR {
     GpuMat currFrame;
     
     GpuMat HSV;
-    GpuMat HSVMinResult;
-    GpuMat HSVMaxResult;
-    GpuMat HSVResult;
     
     GpuMat threshold;
     Mat outputThreshold;
@@ -90,18 +88,28 @@ namespace LGR {
     return secs;
   }
   
-  void Camera::GetThreshold(GpuMat HSVMin, GpuMat HSVMax) {
-    cuda::compare(HSV, HSVMin, HSVMinResult, CMP_GE);
-    cuda::compare(HSV, HSVMax, HSVMaxResult, CMP_LE);
+  void Camera::GetThreshold(HSVvalues values) {
+    GpuMat HSVchannels[4];
+    GpuMat thresholdMaxchannels[3];
+    GpuMat thresholdMinchannels[3];
+    GpuMat thresholdchannels[4];
     
-    cuda::max(HSVMinResult, HSVMaxResult, HSVResult);
+    cuda::split(HSV, HSVchannels);
     
-    GpuMat HSVRchannels[4];
-    cuda::split(HSVResult, HSVRchannels);
-    cuda::bitwise_and(HSVRchannels[0], HSVRchannels[1], HSVRchannels[3]);
-    cuda::bitwise_and(HSVRchannels[3], HSVRchannels[2], HSVRchannels[3]);
+    cuda::threshold(HSVchannels[0], thresholdMinchannels[0], values.Hmin, 255, THRESH_BINARY_INV);
+    cuda::threshold(HSVchannels[0], thresholdMaxchannels[0], values.Hmax, 255, THRESH_BINARY);
+    cuda::bitwise_and(thresholdMaxchannels[0], thresholdMinchannels[0], thresholdchannels[0]);
     
-    cuda::threshold(HSVRchannels[3], threshold, 255, 255, THRESH_BINARY);
+    cuda::threshold(HSVchannels[1], thresholdMinchannels[1], values.Smin, 255, THRESH_BINARY_INV);
+    cuda::threshold(HSVchannels[1], thresholdMaxchannels[1], values.Smax, 255, THRESH_BINARY);
+    cuda::bitwise_and(thresholdMaxchannels[1], thresholdMinchannels[1], thresholdchannels[1]);
+    
+    cuda::threshold(HSVchannels[2], thresholdMinchannels[2], values.Vmin, 255, THRESH_BINARY_INV);
+    cuda::threshold(HSVchannels[2], thresholdMaxchannels[2], values.Vmax, 255, THRESH_BINARY);
+    cuda::bitwise_and(thresholdMaxchannels[2], thresholdMinchannels[2], thresholdchannels[2]);
+    
+    cuda::bitwise_and(thresholdchannels[0], thresholdchannels[1], thresholdchannels[3]);
+    cuda::bitwise_and(thresholdchannels[3], thresholdchannels[2], threshold);
     
     erodeFilter->apply(threshold, threshold);
     dialateFilter->apply(threshold, threshold);

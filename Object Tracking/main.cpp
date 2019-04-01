@@ -36,7 +36,7 @@ Mat P(4,1,CV_64F);
 double frameTime = 0;
 
 void on_trackbar(int, void*) {
-  HSV.calcValues();
+  //HSV.calcValues();
 }
 
 void createTrackbars() {
