@@ -10,7 +10,6 @@
 #include <opencv2/cudafilters.hpp>
 
 #include "constants.hpp"
-#include "HSV.hpp"
 
 using namespace std;
 using namespace cv;
@@ -39,7 +38,7 @@ namespace LGR {
     double ballPixelY;
     
     double FrametoHSV(TickMeter* t, HostMem* p_l, Mat* frame);
-    void GetThreshold(GpuMat HSVMin, GpuMat HSVMax);
+    void GetThreshold(HSVvalues values);
     Mat FindBallPixels();
     Mat findBall();
     Mat trackBall();
@@ -68,11 +67,11 @@ namespace LGR {
     K = k;
     distortion_coeffs = d;
     
-    cap.open(feed);
+    cap.open("/dev/video" + to_string(feed), CAP_V4L2);
     
-    cap.set(CV_CAP_PROP_FPS, FRAMES_PER_SECOND);
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+    cap.set(CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
   }
   
   double Camera::FrametoHSV(TickMeter* t, HostMem* p_l, Mat* frame) {
@@ -96,17 +95,17 @@ namespace LGR {
     
     cuda::split(HSV, HSVchannels);
     
-    cuda::threshold(HSVchannels[0], thresholdMinchannels[0], values.Hmin, 255, THRESH_BINARY_INV);
-    cuda::threshold(HSVchannels[0], thresholdMaxchannels[0], values.Hmax, 255, THRESH_BINARY);
-    cuda::bitwise_and(thresholdMaxchannels[0], thresholdMinchannels[0], thresholdchannels[0]);
+    cuda::threshold(HSVchannels[0], thresholdMinchannels[0], values.HMin, 255, THRESH_BINARY);
+    cuda::threshold(HSVchannels[0], thresholdMaxchannels[0], values.HMax, 255, THRESH_BINARY_INV);
+    cuda::bitwise_and(thresholdMinchannels[0], thresholdMaxchannels[0], thresholdchannels[0]);
     
-    cuda::threshold(HSVchannels[1], thresholdMinchannels[1], values.Smin, 255, THRESH_BINARY_INV);
-    cuda::threshold(HSVchannels[1], thresholdMaxchannels[1], values.Smax, 255, THRESH_BINARY);
-    cuda::bitwise_and(thresholdMaxchannels[1], thresholdMinchannels[1], thresholdchannels[1]);
+    cuda::threshold(HSVchannels[1], thresholdMinchannels[1], values.SMin, 255, THRESH_BINARY);
+    cuda::threshold(HSVchannels[1], thresholdMaxchannels[1], values.SMax, 255, THRESH_BINARY_INV);
+    cuda::bitwise_and(thresholdMinchannels[1], thresholdMaxchannels[1], thresholdchannels[1]);
     
-    cuda::threshold(HSVchannels[2], thresholdMinchannels[2], values.Vmin, 255, THRESH_BINARY_INV);
-    cuda::threshold(HSVchannels[2], thresholdMaxchannels[2], values.Vmax, 255, THRESH_BINARY);
-    cuda::bitwise_and(thresholdMaxchannels[2], thresholdMinchannels[2], thresholdchannels[2]);
+    cuda::threshold(HSVchannels[2], thresholdMinchannels[2], values.VMin, 255, THRESH_BINARY);
+    cuda::threshold(HSVchannels[2], thresholdMaxchannels[2], values.VMax, 255, THRESH_BINARY_INV);
+    cuda::bitwise_and(thresholdMinchannels[2], thresholdMaxchannels[2], thresholdchannels[2]);
     
     cuda::bitwise_and(thresholdchannels[0], thresholdchannels[1], thresholdchannels[3]);
     cuda::bitwise_and(thresholdchannels[3], thresholdchannels[2], threshold);

@@ -14,16 +14,9 @@ make
 
 Any issues - try deleting everything in the /build folder first to clear all the cache for CMake
 
-## Changing camera formats
+## Looking at camera formats
 
-To make sure the cameras are using th correct image format for the fastest frame rate
-
-0. Add this code below opening the VideoCapture (assuming the video captue's name is cap):
-	int fps = 60;
-	cap.set(CV_CAP_PROP_FPS, fps);
-	cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
-	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
-	0b. If you're lucky that's the only step you'll have to do, so test the code to see if it works
+To make sure the cameras are using the correct image format for the fastest frame rate
 
 1. Plug camera into device
 2. Open terminal

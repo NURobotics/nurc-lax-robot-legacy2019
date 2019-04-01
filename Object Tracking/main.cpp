@@ -61,7 +61,7 @@ void createTrackbars() {
 
 Mat GetCooridnates(Camera* capture, TickMeter* t, HostMem* p_l, Mat* frame) {
   frameTime += capture->FrametoHSV(t, p_l, frame);
-  capture->GetThreshold(HSV.HSVMinG, HSV.HSVMaxG);
+  capture->GetThreshold(HSV);
   
   return capture->FindBallPixels();
 }
