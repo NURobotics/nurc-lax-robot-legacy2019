@@ -70,8 +70,8 @@ namespace LGR {
     cap.open("/dev/video" + to_string(feed), CAP_V4L2);
     
     cap.set(CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
   }
   
   double Camera::FrametoHSV(TickMeter* t, HostMem* p_l, Mat* frame) {

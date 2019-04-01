@@ -1,8 +1,8 @@
 using namespace std;
 
-#define FRAME_WIDTH 1280
-#define FRAME_HEIGHT 720
-#define FRAMES_PER_SECOND 60
+#define FRAME_WIDTH 640
+#define FRAME_HEIGHT 480
+#define FRAMES_PER_SECOND 120
 
 #define MAX_NUM_OBJECTS 45
 #define MIN_OBJECT_AREA 400
