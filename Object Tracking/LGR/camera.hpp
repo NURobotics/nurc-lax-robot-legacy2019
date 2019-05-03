@@ -1,10 +1,13 @@
 #include <iostream>
 #include <string>
+#include <cmath>
+#include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/videoio/videoio.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/dnn/dnn.hpp>
 #include <opencv2/cudaarithm.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudafilters.hpp>
@@ -14,6 +17,7 @@
 using namespace std;
 using namespace cv;
 using namespace cv::cuda;
+using namespace cv::dnn;
 
 namespace LGR {
   struct Camera {
@@ -33,14 +37,22 @@ namespace LGR {
     GpuMat threshold;
     Mat outputThreshold;
     
+    vector<string> classes;
+    string modelConfig = "../darknet-yolov3.cfg";
+    string modelWeights = "../darknet-yolov3.cfg";
+    Net net;
+    
     bool ballFound = false;
+    bool useHSV = false;
     double ballPixelX;
     double ballPixelY;
     
-    double FrametoHSV(TickMeter* t, HostMem* p_l, Mat* frame);
+    double ReadFrame(TickMeter* t, HostMem* p_l, Mat* frame);
+    void FrameToHSV();
     void GetThreshold(HSVvalues values);
     Mat FindBallPixels();
-    Mat findBall();
+    Mat findBallHSV();
+    Mat findBallML();
     Mat trackBall();
     
     void drawObject();
@@ -72,22 +84,29 @@ namespace LGR {
     cap.set(CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
     cap.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+    
+    classes.push_back("laxball");
+    net = readNetFromDarknet(modelConfig, modelWeights);
+    net.setPreferableTarget(DNN_TARGET_OPENCL);
   }
   
-  double Camera::FrametoHSV(TickMeter* t, HostMem* p_l, Mat* frame) {
+  double Camera::ReadFrame(TickMeter* t, HostMem* p_l, Mat* frame) {
     t->stop();
     double secs = t->getTimeSec();
     t->reset();
     t->start(); 
     cap.read(currFrameInt);
     
-    currFrame.upload(currFrameInt);
-    cuda::cvtColor(currFrame, HSV, COLOR_BGR2HSV, 4);
-    
     return secs;
   }
   
+  void Camera::FrameToHSV() {    
+    currFrame.upload(currFrameInt);
+    cuda::cvtColor(currFrame, HSV, COLOR_BGR2HSV, 4);
+  }
+  
   void Camera::GetThreshold(HSVvalues values) {
+    
     GpuMat HSVchannels[4];
     GpuMat thresholdMaxchannels[3];
     GpuMat thresholdMinchannels[3];
@@ -117,7 +136,9 @@ namespace LGR {
   }
   
   //This is where the money gets made!
-  Mat Camera::findBall() {
+  Mat Camera::findBallHSV() {
+    
+    
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
     Mat undistoredCoord;
@@ -143,6 +164,8 @@ namespace LGR {
 		        ballPixelY = moment.m01/area;
 		        ballFound = true;
 		        refArea = area;
+		        double diameter = 2 * sqrt(area / 3.14);
+		        cout << "ball diameter is " << diameter << endl;
 	        } 
 	        else {
 	          ballFound = false;
@@ -158,12 +181,20 @@ namespace LGR {
       undistortPoints(ballCoord, undistoredCoord, K, distortion_coeffs);
     }
     
+    
     return ballCoord;
   }
   
+  Mat Camera::findBallML() {
+    Mat blob = blobFromImage(currFrameInt, 1/255.0, cvSize(inpWidth, inpHeight), Scalar(0,0,0), true, false);
+    net.setInput(blob);
+    
+    vector<Mat> outs;
+    net.forward(outs, getOutputsNames(net));
+  }
   
   Mat Camera::trackBall() {
-    return findBall();
+    return findBallHSV();
   }
   
   Mat Camera::FindBallPixels() {
@@ -171,7 +202,12 @@ namespace LGR {
       return trackBall();
     }
     else {
-      return findBall();
+      if (useHSV) {
+        return findBallHSV();
+      }
+      else {
+        return findBallML();
+      }
     }
   }
   

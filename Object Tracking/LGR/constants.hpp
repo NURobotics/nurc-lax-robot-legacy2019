@@ -1,14 +1,18 @@
 using namespace std;
 
-#define FRAME_WIDTH 640
-#define FRAME_HEIGHT 480
-#define FRAMES_PER_SECOND 120
+#define FRAME_WIDTH 1280
+#define FRAME_HEIGHT 720
+#define FRAMES_PER_SECOND 60
 
 #define MAX_NUM_OBJECTS 45
-#define MIN_OBJECT_AREA 400
+#define MIN_OBJECT_AREA 100
 #define MAX_OBJECT_AREA 614400 // FRAME_HEIGHT*FRAME_WIDTH/1.5
 
 #define GRAVITY 9.80665
+
+#define CONF_THRESHOLD 0.5 // Confidence threshold
+#define N_M_S_THRESHOLD 0.4 // Non-maximum suppression threshold
+#define NET_SIZE 608 // Width and height of input image to network
 
 namespace LGR {
   

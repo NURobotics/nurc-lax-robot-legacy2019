@@ -11,6 +11,8 @@ namespace LGR {
     
     TickMeter t;
     
+    
+    
     int consecFramesFound = 0;
     
     void nextCoords(double newX, double newY, double newZ);

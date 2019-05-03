@@ -60,8 +60,13 @@ void createTrackbars() {
 }
 
 Mat GetCooridnates(Camera* capture, TickMeter* t, HostMem* p_l, Mat* frame) {
-  frameTime += capture->FrametoHSV(t, p_l, frame);
-  capture->GetThreshold(HSV);
+  
+  frameTime += capture->ReadFrame(t, p_l, frame);
+  
+  if (capture->useHSV) {
+    capture->FrameToHSV();
+    capture->GetThreshold(HSV);
+  }
   
   return capture->FindBallPixels();
 }
@@ -89,7 +94,8 @@ class MainEvent : public ParallelLoopBody {
     virtual void operator ()(const Range& range) const {
       for (int r = range.start; r < range.end; r++) {
         switch (r) {
-          case 0: ballCoordL = GetCooridnates(p_captureL, p_timerL, p_page_lockedL, p_frameL);
+          case 0:
+          ballCoordL = GetCooridnates(p_captureL, p_timerL, p_page_lockedL, p_frameL);
             break;
           case 1: ballCoordR = GetCooridnates(p_captureR, p_timerR, p_page_lockedR, p_frameR);
             break;
@@ -146,6 +152,7 @@ int main(int argc, char* argv[]) {
   TickMeter timerL;
   TickMeter timerR;
   TickMeter timerT;
+  TickMeter code_timer;
 
   createTrackbars();
   bool showWindows = false;
@@ -160,6 +167,7 @@ int main(int argc, char* argv[]) {
   timerR.start();
 
   for (;;) {
+    code_timer.start();
     frameTime = 0;
 
     parallel_for_(Range(0, 3), mainEvent);
@@ -178,7 +186,7 @@ int main(int argc, char* argv[]) {
       captureR->showThreshold();
     }
     
-    cout << "FPS: " << 1/frameTime/2 << endl;
+    cout << "FPS: " << 1/(frameTime/2) << endl;
 
     char c = (char) waitKey( 1 );
     if( c == 'p' )

@@ -33,6 +33,10 @@ iostream
 -
 string
 -
+cmath
+-
+vector
+-
 opencv2/core/core.hpp
 -
 opencv2/highgui/highgui.hpp
@@ -42,6 +46,8 @@ opencv2/videoio/videoio.hpp
 opencv2/core/cuda.hpp
 -
 opencv2/imgproc/imgproc.hpp
+-
+opencv2/dnn/dnn.hpp
 -
 opencv2/cudaarithm.hpp
 -
