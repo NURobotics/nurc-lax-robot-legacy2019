@@ -11,9 +11,9 @@ using namespace std;
 #define GRAVITY 9.80665
 
 #define CONF_THRESHOLD 0.5 // Confidence threshold
-#define N_M_S_THRESHOLD 0.4 // Non-maximum suppression threshold
+#define NMS_THRESHOLD 0.4 // Non-maximum suppression threshold
 #define NET_SIZE 608 // Width and height of input image to network
 
 namespace LGR {
-  
+
 }
