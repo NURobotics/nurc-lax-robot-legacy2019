@@ -14,6 +14,3 @@ using namespace std;
 #define NMS_THRESHOLD 0.4 // Non-maximum suppression threshold
 #define NET_SIZE 608 // Width and height of input image to network
 
-namespace LGR {
-
-}

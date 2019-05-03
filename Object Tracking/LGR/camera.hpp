@@ -39,7 +39,7 @@ namespace LGR {
 
     vector<string> classes;
     string modelConfig = "../darknet-yolov3.cfg";
-    string modelWeights = "../darknet-yolov3.cfg";
+    string modelWeights = "../yolov3.weights";
     Net net;
     string outputLayer;
 
@@ -80,7 +80,7 @@ namespace LGR {
     K = k;
     distortion_coeffs = d;
 
-    cap.open("/dev/video" + to_string(feed), CAP_V4L2);
+    cap.open("../8Meters_TightLeft.mp4", CAP_V4L2);
 
     cap.set(CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
     cap.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
@@ -191,15 +191,15 @@ namespace LGR {
 
   Mat Camera::findBallML() {
     Mat ballCoord(1, 1, CV_64FC2);
-    Mat blob = blobFromImage(currFrameInt, 1/255.0, cvSize(inpWidth, inpHeight), Scalar(0,0,0), true, false);
+    Mat blob = blobFromImage(currFrameInt, 1/255.0, cvSize(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
     net.setInput(blob);
 
-    vector<Mat> outs;
+    Mat outs;
     net.forward(outs, outputLayer);
 
     float* data = (float*)outs.data;
     vector<float> confidences;
-    vector<Rect2d> boxes;
+    vector<Rect> boxes;
 
     int rows = outs.rows;
     int cols = outs.cols;
@@ -232,7 +232,7 @@ namespace LGR {
   }
 
   Mat Camera::trackBall() {
-    return findBallHSV();
+    return findBallML();
   }
 
   Mat Camera::FindBallPixels() {
