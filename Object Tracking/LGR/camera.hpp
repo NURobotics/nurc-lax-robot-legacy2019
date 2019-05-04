@@ -82,9 +82,9 @@ namespace LGR {
 
     cap.open("../8Meters_TightLeft.mp4", CAP_V4L2);
 
-    cap.set(CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+    cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
     classes.push_back("laxball");
     net = readNetFromDarknet(modelConfig, modelWeights);
@@ -150,7 +150,7 @@ namespace LGR {
     ballPixelX = 0;
     ballPixelY = 0;
 
-    findContours(outputThreshold, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+    findContours(outputThreshold, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
 
     // Uses moments method to find our filtered object
     double refArea = 0;
@@ -191,7 +191,7 @@ namespace LGR {
 
   Mat Camera::findBallML() {
     Mat ballCoord(1, 1, CV_64FC2);
-    Mat blob = blobFromImage(currFrameInt, 1/255.0, cvSize(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
+    Mat blob = blobFromImage(currFrameInt, 1/255.0, Size(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
     net.setInput(blob);
 
     Mat outs;
@@ -251,7 +251,7 @@ namespace LGR {
 
   void Camera::drawObject() {
     if (ballFound) {
-      circle(currFrameInt, cvPoint(ballPixelX, ballPixelY), 20, cvScalar(0, 255, 0), 2);
+      circle(currFrameInt, Point(ballPixelX, ballPixelY), 20, Scalar(0, 255, 0), 2);
       if (ballPixelY - 25 > 0)
         line(currFrameInt,  Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY-25), Scalar(0, 255, 0), 2);
       else
