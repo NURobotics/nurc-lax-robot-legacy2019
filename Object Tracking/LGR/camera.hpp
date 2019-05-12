@@ -14,6 +14,8 @@
 
 #include "constants.hpp"
 
+#include "../ML/darknet/yolo_v2_class.hpp"
+
 using namespace std;
 using namespace cv;
 using namespace cv::cuda;
@@ -37,11 +39,16 @@ namespace LGR {
     GpuMat threshold;
     Mat outputThreshold;
 
-    vector<string> classes;
     string modelConfig = "../yolov3.cfg";
     string modelWeights = "../yolov3.weights";
+
+    //Using OpenCV dnn
+    vector<string> classes;
     Net net;
     string outputLayer;
+
+    //Using Darknet DNN
+    Detector* detector;
 
     bool ballFound = false;
     bool useHSV = false;
@@ -86,15 +93,18 @@ namespace LGR {
     // cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
     // cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
     //
-    classes.push_back("laxball");
-    net = readNetFromDarknet(modelConfig, modelWeights);
-    net.setPreferableBackend(DNN_BACKEND_OPENCV);
-    net.setPreferableTarget(DNN_TARGET_OPENCL);
+    // classes.push_back("laxball");
+    // net = readNetFromDarknet(modelConfig, modelWeights);
+    // net.setPreferableBackend(DNN_BACKEND_OPENCV);
+    // net.setPreferableTarget(DNN_TARGET_OPENCL);
+    //
+    // vector<int> outLayers = net.getUnconnectedOutLayers();
+    // // vector<String> layersNames = net.getLayerNames();
+    //
+    // outputLayer = layersNames[outLayers[0]];
 
-    vector<int> outLayers = net.getUnconnectedOutLayers();
-    vector<String> layersNames = net.getLayerNames();
-
-    outputLayer = layersNames[outLayers[0]];
+    Detector dTemp(modelConfig, modelWeights);
+    detector = &dTemp;
   }
 
   double Camera::ReadFrame(TickMeter* t, HostMem* p_l, Mat* frame) {

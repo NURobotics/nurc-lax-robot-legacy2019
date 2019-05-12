@@ -15,3 +15,4 @@ include_directories("${CUDA_INCLUDE_DIRS}")
 add_executable(cv_nurc_lax main.cpp)
 
 target_link_libraries(cv_nurc_lax ${OpenCV_LIBS})
+

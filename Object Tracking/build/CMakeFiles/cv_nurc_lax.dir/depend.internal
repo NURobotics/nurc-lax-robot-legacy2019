@@ -9,6 +9,7 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o
  /home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
  /home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/mController.hpp
  /home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/robot.hpp
+ /home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/ML/darknet/yolo_v2_class.hpp
  /home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/Constants.h
  /home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/ErrorCodes.h
  /home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.cpp
@@ -21,6 +22,7 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o
  /usr/local/include/opencv4/opencv2/core/bufferpool.hpp
  /usr/local/include/opencv4/opencv2/core/check.hpp
  /usr/local/include/opencv4/opencv2/core/core.hpp
+ /usr/local/include/opencv4/opencv2/core/core_c.h
  /usr/local/include/opencv4/opencv2/core/cuda.hpp
  /usr/local/include/opencv4/opencv2/core/cuda.inl.hpp
  /usr/local/include/opencv4/opencv2/core/cuda_types.hpp
@@ -43,6 +45,7 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o
  /usr/local/include/opencv4/opencv2/core/saturate.hpp
  /usr/local/include/opencv4/opencv2/core/traits.hpp
  /usr/local/include/opencv4/opencv2/core/types.hpp
+ /usr/local/include/opencv4/opencv2/core/types_c.h
  /usr/local/include/opencv4/opencv2/core/utility.hpp
  /usr/local/include/opencv4/opencv2/core/version.hpp
  /usr/local/include/opencv4/opencv2/core/vsx_utils.hpp
@@ -96,9 +99,12 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o
  /usr/local/include/opencv4/opencv2/flann/timer.h
  /usr/local/include/opencv4/opencv2/highgui.hpp
  /usr/local/include/opencv4/opencv2/highgui/highgui.hpp
+ /usr/local/include/opencv4/opencv2/highgui/highgui_c.h
  /usr/local/include/opencv4/opencv2/imgcodecs.hpp
  /usr/local/include/opencv4/opencv2/imgproc.hpp
  /usr/local/include/opencv4/opencv2/imgproc/imgproc.hpp
+ /usr/local/include/opencv4/opencv2/imgproc/imgproc_c.h
+ /usr/local/include/opencv4/opencv2/imgproc/types_c.h
  /usr/local/include/opencv4/opencv2/ml.hpp
  /usr/local/include/opencv4/opencv2/ml/ml.inl.hpp
  /usr/local/include/opencv4/opencv2/objdetect.hpp

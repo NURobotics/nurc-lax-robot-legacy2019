@@ -8,6 +8,7 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../LGR/camera.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../LGR/constants.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../LGR/mController.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../LGR/robot.hpp
+CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../ML/darknet/yolo_v2_class.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../Roboteq/Constants.h
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../Roboteq/ErrorCodes.h
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: ../Roboteq/RoboteqDevice.cpp
@@ -20,6 +21,7 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/b
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/bufferpool.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/check.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/core.hpp
+CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/core_c.h
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/cuda.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/cuda.inl.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/cuda_types.hpp
@@ -42,6 +44,7 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/p
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/saturate.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/traits.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/types.hpp
+CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/types_c.h
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/utility.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/version.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/core/vsx_utils.hpp
@@ -95,9 +98,12 @@ CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/flann/
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/flann/timer.h
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/highgui.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/highgui/highgui.hpp
+CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/highgui/highgui_c.h
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/imgcodecs.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/imgproc.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/imgproc/imgproc.hpp
+CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/imgproc/imgproc_c.h
+CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/imgproc/types_c.h
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/ml.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/ml/ml.inl.hpp
 CMakeFiles/cv_nurc_lax.dir/main.cpp.o: /usr/local/include/opencv4/opencv2/objdetect.hpp
