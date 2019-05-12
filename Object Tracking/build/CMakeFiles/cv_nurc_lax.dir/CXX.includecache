@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/HSV.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/HSV.hpp
 iostream
 -
 vector
@@ -14,21 +14,21 @@ vector
 opencv2/core/core.hpp
 -
 constants.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/constants.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
 
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/axis.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/axis.hpp
 iostream
 -
 constants.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/constants.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
 
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/ball.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/ball.hpp
 iostream
 -
 constants.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/constants.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
 
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/camera.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/camera.hpp
 iostream
 -
 string
@@ -56,37 +56,37 @@ opencv2/cudaimgproc.hpp
 opencv2/cudafilters.hpp
 -
 constants.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/constants.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
 
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/constants.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
 
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/mController.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/mController.hpp
 iostream
 -
 opencv2/core/core.hpp
 -
 ../Roboteq/RoboteqDevice.cpp
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.cpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.cpp
 ../Roboteq/ErrorCodes.h
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/ErrorCodes.h
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/ErrorCodes.h
 ../Roboteq/Constants.h
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/Constants.h
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/Constants.h
 constants.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/constants.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
 
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/robot.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/robot.hpp
 iostream
 -
 opencv2/core/core.hpp
 -
 constants.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/constants.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/constants.hpp
 
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/Constants.h
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/Constants.h
 
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/ErrorCodes.h
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/ErrorCodes.h
 
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.cpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.cpp
 iostream
 -
 stdio.h
@@ -108,13 +108,13 @@ termios.h
 unistd.h
 -
 RoboteqDevice.h
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.h
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.h
 ErrorCodes.h
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/ErrorCodes.h
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/ErrorCodes.h
 
-/home/nvidia/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.h
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/Roboteq/RoboteqDevice.h
 
-/home/nvidia/nurc-lax-robot/Object Tracking/main.cpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/main.cpp
 string
 -
 iostream
@@ -128,17 +128,17 @@ opencv2/imgcodecs.hpp
 opencv2/calib3d.hpp
 -
 LGR/axis.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/axis.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/axis.hpp
 LGR/HSV.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/HSV.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/HSV.hpp
 LGR/camera.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/camera.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/camera.hpp
 LGR/robot.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/robot.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/robot.hpp
 LGR/mController.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/mController.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/mController.hpp
 LGR/ball.hpp
-/home/nvidia/nurc-lax-robot/Object Tracking/LGR/ball.hpp
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/LGR/ball.hpp
 
 /usr/local/include/opencv4/opencv2/calib3d.hpp
 opencv2/core.hpp
@@ -469,10 +469,6 @@ opencv2/core/cuda.hpp
 /usr/local/include/opencv4/opencv2/opencv2/core/cuda.hpp
 opencv2/video/background_segm.hpp
 /usr/local/include/opencv4/opencv2/opencv2/video/background_segm.hpp
-
-/usr/local/include/opencv4/opencv2/cudacodec.hpp
-opencv2/core/cuda.hpp
-/usr/local/include/opencv4/opencv2/opencv2/core/cuda.hpp
 
 /usr/local/include/opencv4/opencv2/cudafeatures2d.hpp
 opencv2/core/cuda.hpp

@@ -1,3 +1,3 @@
-/home/nvidia/nurc-lax-robot/Object Tracking/build/CMakeFiles/rebuild_cache.dir
-/home/nvidia/nurc-lax-robot/Object Tracking/build/CMakeFiles/edit_cache.dir
-/home/nvidia/nurc-lax-robot/Object Tracking/build/CMakeFiles/cv_nurc_lax.dir
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/build/CMakeFiles/rebuild_cache.dir
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/build/CMakeFiles/cv_nurc_lax.dir
+/home/nurc/Documents/LAX/nurc-lax-robot/Object Tracking/build/CMakeFiles/edit_cache.dir

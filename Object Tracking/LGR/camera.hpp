@@ -38,7 +38,7 @@ namespace LGR {
     Mat outputThreshold;
 
     vector<string> classes;
-    string modelConfig = "../darknet-yolov3.cfg";
+    string modelConfig = "../yolov3.cfg";
     string modelWeights = "../yolov3.weights";
     Net net;
     string outputLayer;
@@ -80,14 +80,15 @@ namespace LGR {
     K = k;
     distortion_coeffs = d;
 
-    cap.open("../8Meters_TightLeft.mp4", CAP_V4L2);
+    cap.open("../TestVid.mp4");
 
-    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
-    cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-    cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
-
+    // cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    // cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+    // cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+    //
     classes.push_back("laxball");
     net = readNetFromDarknet(modelConfig, modelWeights);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
     net.setPreferableTarget(DNN_TARGET_OPENCL);
 
     vector<int> outLayers = net.getUnconnectedOutLayers();
