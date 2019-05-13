@@ -14,7 +14,7 @@
 
 #include "constants.hpp"
 
-#include "../ML/darknet/yolo_v2_class.hpp"
+#include "../ML/darknet/yolo_v2_class.cpp"
 
 using namespace std;
 using namespace cv;
