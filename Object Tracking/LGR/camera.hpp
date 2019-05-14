@@ -14,7 +14,7 @@
 
 #include "constants.hpp"
 
-#include "../ML/darknet/yolo_v2_class.cpp"
+#include "../ML/yolo_v2_class.hpp"
 
 using namespace std;
 using namespace cv;
@@ -39,8 +39,8 @@ namespace LGR {
     GpuMat threshold;
     Mat outputThreshold;
 
-    string modelConfig = "../yolov3.cfg";
-    string modelWeights = "../yolov3.weights";
+    string modelConfig = "../ML/yolov3.cfg";
+    string modelWeights = "../ML/yolov3.weights";
 
     //Using OpenCV dnn
     vector<string> classes;
@@ -48,7 +48,7 @@ namespace LGR {
     string outputLayer;
 
     //Using Darknet DNN
-    Detector* detector;
+    Detector *detector = new Detector(modelConfig, modelWeights);
 
     bool ballFound = false;
     bool useHSV = false;
@@ -103,8 +103,7 @@ namespace LGR {
     //
     // outputLayer = layersNames[outLayers[0]];
 
-    Detector dTemp(modelConfig, modelWeights);
-    detector = &dTemp;
+
   }
 
   double Camera::ReadFrame(TickMeter* t, HostMem* p_l, Mat* frame) {
@@ -200,46 +199,66 @@ namespace LGR {
     return ballCoord;
   }
 
+  // Mat Camera::findBallML() {
+  //   Mat ballCoord(1, 1, CV_64FC2);
+  //   Mat blob = blobFromImage(currFrameInt, 1/255.0, Size(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
+  //   net.setInput(blob);
+  //
+  //   Mat outs;
+  //   net.forward(outs, outputLayer);
+  //
+  //   float* data = (float*)outs.data;
+  //   vector<float> confidences;
+  //   vector<Rect> boxes;
+  //
+  //   int rows = outs.rows;
+  //   int cols = outs.cols;
+  //   for (int j = 0; j < rows; ++j, data += cols) {
+  //     Mat scores = outs.row(j).colRange(5, cols);
+  //     double confidence;
+  //
+  //     // Get the value and location of the maximum score
+  //     cuda::minMaxLoc(scores, 0, &confidence, 0, 0);
+  //     if (confidence > CONF_THRESHOLD) {
+  //       int centerX = (int)(data[0] * FRAME_WIDTH);
+  //       int centerY = (int)(data[1] * FRAME_HEIGHT);
+  //       int width = (int)(data[2] * FRAME_WIDTH);
+  //       int height = (int)(data[3] * FRAME_HEIGHT);
+  //       int left = centerX - width / 2;
+  //       int top = centerY - height / 2;
+  //
+  //       confidences.push_back((float)confidence);
+  //       boxes.push_back(Rect2d(left, top, width, height));
+  //     }
+  //   }
+  //
+  //   vector<int> indices;
+  //   NMSBoxes(boxes, confidences, CONF_THRESHOLD, NMS_THRESHOLD, indices);
+  //
+  //   ballCoord.at<Vec2d>(0,0)[0] = boxes[indices[0]].x;
+  //   ballCoord.at<Vec2d>(0,0)[1] = boxes[indices[0]].y;
+  //
+  //   return ballCoord;
+  // }
+
   Mat Camera::findBallML() {
     Mat ballCoord(1, 1, CV_64FC2);
-    Mat blob = blobFromImage(currFrameInt, 1/255.0, Size(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
-    net.setInput(blob);
 
-    Mat outs;
-    net.forward(outs, outputLayer);
+  	std::vector<bbox_t> result_vec = detector->detect(currFrameInt);
 
-    float* data = (float*)outs.data;
-    vector<float> confidences;
-    vector<Rect> boxes;
-
-    int rows = outs.rows;
-    int cols = outs.cols;
-    for (int j = 0; j < rows; ++j, data += cols) {
-      Mat scores = outs.row(j).colRange(5, cols);
-      double confidence;
-
-      // Get the value and location of the maximum score
-      cuda::minMaxLoc(scores, 0, &confidence, 0, 0);
-      if (confidence > CONF_THRESHOLD) {
-        int centerX = (int)(data[0] * FRAME_WIDTH);
-        int centerY = (int)(data[1] * FRAME_HEIGHT);
-        int width = (int)(data[2] * FRAME_WIDTH);
-        int height = (int)(data[3] * FRAME_HEIGHT);
-        int left = centerX - width / 2;
-        int top = centerY - height / 2;
-
-        confidences.push_back((float)confidence);
-        boxes.push_back(Rect2d(left, top, width, height));
-      }
+    if(result_vec.size() > 0){
+      ballFound = true;
+      ballCoord.at<Vec2d>(0,0)[0] = result_vec[0].x;
+      ballCoord.at<Vec2d>(0,0)[1] = result_vec[0].y;
+      ballPixelX = result_vec[0].x;
+      ballPixelY = result_vec[0].y;
+    } else {
+      ballFound = false;
     }
 
-    vector<int> indices;
-    NMSBoxes(boxes, confidences, CONF_THRESHOLD, NMS_THRESHOLD, indices);
-
-    ballCoord.at<Vec2d>(0,0)[0] = boxes[indices[0]].x;
-    ballCoord.at<Vec2d>(0,0)[1] = boxes[indices[0]].y;
 
     return ballCoord;
+
   }
 
   Mat Camera::trackBall() {

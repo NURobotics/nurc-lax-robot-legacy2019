@@ -118,6 +118,7 @@ cv_nurc_lax: /usr/local/lib/libopencv_structured_light.so.4.1.0
 cv_nurc_lax: /usr/local/lib/libopencv_surface_matching.so.4.1.0
 cv_nurc_lax: /usr/local/lib/libopencv_tracking.so.4.1.0
 cv_nurc_lax: /usr/local/lib/libopencv_videostab.so.4.1.0
+cv_nurc_lax: /usr/lib/libdarknet.so
 cv_nurc_lax: /usr/local/lib/libopencv_cudalegacy.so.4.1.0
 cv_nurc_lax: /usr/local/lib/libopencv_objdetect.so.4.1.0
 cv_nurc_lax: /usr/local/lib/libopencv_datasets.so.4.1.0

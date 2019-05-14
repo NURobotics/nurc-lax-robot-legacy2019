@@ -60,37 +60,37 @@ void createTrackbars() {
 }
 
 Mat GetCooridnates(Camera* capture, TickMeter* t, HostMem* p_l, Mat* frame) {
-  
+
   frameTime += capture->ReadFrame(t, p_l, frame);
-  
+
   if (capture->useHSV) {
     capture->FrameToHSV();
     capture->GetThreshold(HSV);
   }
-  
+
   return capture->FindBallPixels();
 }
 
 void MoveRobot() {
   triangulatePoints(projL, projR, ballCoordL, ballCoordR, P);
-  
+
   LAXBall->nextCoords(P.at<double>(0,0)/P.at<double>(3,0),
                      P.at<double>(1,0)/P.at<double>(3,0),
                      -P.at<double>(2,0)/P.at<double>(3,0));
-                  
-  
+
+
   LAXBall->calcFinalPos(frameTime/2, LAXBot);
   Roboteq->calcCounts(LAXBot);
   //Roboteq->sendAngles();
 }
 
 class MainEvent : public ParallelLoopBody {
-  public: 
+  public:
     MainEvent(Camera* captureL, TickMeter* timerL, HostMem* page_lockedL, Mat* frameL,
               Camera* captureR, TickMeter* timerR, HostMem* page_lockedR, Mat* frameR)
                 : p_captureL(captureL), p_timerL(timerL), p_page_lockedL(page_lockedL), p_frameL(frameL),
                   p_captureR(captureR), p_timerR(timerR), p_page_lockedR(page_lockedR), p_frameR(frameR) {}
-                
+
     virtual void operator ()(const Range& range) const {
       for (int r = range.start; r < range.end; r++) {
         switch (r) {
@@ -110,11 +110,11 @@ class MainEvent : public ParallelLoopBody {
         }
       }
     }
-    
+
     MainEvent& operator=(const MainEvent &) {
         return *this;
     };
-    
+
   private:
     Camera* p_captureL;
     TickMeter* p_timerL;
@@ -127,10 +127,9 @@ class MainEvent : public ParallelLoopBody {
 };
 
 int main(int argc, char* argv[]) {
-
   HostMem page_lockedL(Size(FRAME_WIDTH, FRAME_HEIGHT), CV_8UC4);
   HostMem page_lockedR(Size(FRAME_WIDTH, FRAME_HEIGHT), CV_8UC4);
-  
+
   Mat frameL = page_lockedL.createMatHeader();
   Mat frameR = page_lockedR.createMatHeader();
 
@@ -148,23 +147,28 @@ int main(int argc, char* argv[]) {
 
   Camera* captureL = new Camera("Left Cam", 1, projL, KL, distortion_coeffsL);
   Camera* captureR = new Camera("Right Cam", 2, projR, KR, distortion_coeffsR);
-  
+
+
+
   TickMeter timerL;
   TickMeter timerR;
   TickMeter timerT;
   TickMeter code_timer;
 
   createTrackbars();
-  bool showWindows = false;
-  
+  bool showWindows = true;
+
   HSV.calcValues();
-  
+
   MainEvent mainEvent(captureL, &timerL, &page_lockedL, &frameL,
                       captureR, &timerR, &page_lockedR, &frameR);
-  
+
   //Roboteq.configure();
   timerL.start();
   timerR.start();
+
+  double frameTimeTotal = 0;
+  int iterations = 0;
 
   for (;;) {
     code_timer.start();
@@ -172,21 +176,24 @@ int main(int argc, char* argv[]) {
 
     parallel_for_(Range(0, 3), mainEvent);
 
-    if (showWindows) {      
+    if (showWindows) {
       captureL->drawObject();
       captureR->drawObject();
-      
+
       captureL->showOriginal();
       captureR->showOriginal();
-      
+
       //captureL->showHSV();
       //captureR->showHSV();
-      
-      captureL->showThreshold();
-      captureR->showThreshold();
+
+      //captureL->showThreshold();
+      //captureR->showThreshold();
     }
-    
-    cout << "FPS: " << 1/(frameTime/2) << endl;
+
+    frameTimeTotal = frameTimeTotal + frameTime;
+    iterations++;
+
+    cout << "FPS: " << 1/((frameTimeTotal/iterations)/2)<< endl;
 
     char c = (char) waitKey( 1 );
     if( c == 'p' )
