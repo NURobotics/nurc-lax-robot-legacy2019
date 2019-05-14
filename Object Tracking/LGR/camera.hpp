@@ -245,18 +245,14 @@ namespace LGR {
   Mat Camera::findBallML() {
     Mat ballCoord(1, 1, CV_64FC2);
 
-  	result_vec = detector->detect(currFrame);
+  	result_vec = detector->detect(currFrame, CONF_THRESHOLD);
+    //result_vec = detector->tracking_id(result_vec);
 
     if ((ballFound = result_vec.size() > 0)) {
       ballCoord.at<Vec2d>(0,0)[0] = result_vec[0].x;
       ballPixelX = result_vec[0].x;
       ballCoord.at<Vec2d>(0,0)[1] = result_vec[0].y;
       ballPixelY = result_vec[0].y;
-      for (auto &i : result_vec) {
-        cout << "obj_id = " << i.obj_id << ",  x = " << i.x << ", y = " << i.y
-      		<< ", w = " << i.w << ", h = " << i.h
-      		<< std::setprecision(3) << ", prob = " << i.prob << endl;
-      }
     }
 
     return ballCoord;
@@ -283,7 +279,8 @@ namespace LGR {
 
   void Camera::drawObject() {
     if (ballFound) {
-      circle(currFrame, Point(ballPixelX, ballPixelY), 20, Scalar(0, 255, 0), 2);
+      if (useHSV)
+        circle(currFrame, Point(ballPixelX, ballPixelY), 20, Scalar(0, 255, 0), 2);
       if (ballPixelY - 25 > 0)
         line(currFrame,  Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY-25), Scalar(0, 255, 0), 2);
       else
@@ -301,16 +298,18 @@ namespace LGR {
       else
         line(currFrame, Point(ballPixelX, ballPixelY), Point(FRAME_WIDTH, ballPixelY), Scalar(0, 255, 0), 2);
 
-      putText(currFrame, to_string(ballPixelX) + ", " + to_string(ballPixelY), Point(ballPixelX, ballPixelY+30), 1, 1, Scalar(0, 255, 0), 2);
+      if (useHSV)
+        putText(currFrame, to_string(ballPixelX) + ", " + to_string(ballPixelY), Point(ballPixelX, ballPixelY+30), 1, 1, Scalar(0, 255, 0), 2);
     }
-    else if (!useHSV) {
+
+    if (!useHSV) {
       for (auto &i : result_vec) {
         Scalar color(60, 160, 260);
         rectangle(currFrame, Rect(i.x, i.y, i.w, i.h), color, 3);
-        if(obj_names.size() > i.obj_id)
-          putText(currFrame, "laxball", Point2f(i.x, i.y - 10), FONT_HERSHEY_COMPLEX_SMALL, 1, color);
+        putText(currFrame, "laxball", Point2f(i.x, i.y - 10), FONT_HERSHEY_COMPLEX_SMALL, 1, color);
+        putText(currFrame, to_string(i.prob), cv::Point2f(i.x+5, i.y + 35), FONT_HERSHEY_COMPLEX_SMALL, 1, color);
         if(i.track_id > 0)
-          putText(currFrame, to_string(i.track_id), cv::Point2f(i.x+5, i.y + 15), FONT_HERSHEY_COMPLEX_SMALL, 1, color);
+          putText(currFrame, to_string(i.track_id), cv::Point2f(i.x+15, i.y + 15), FONT_HERSHEY_COMPLEX_SMALL, 1, color);
       }
     }
   }

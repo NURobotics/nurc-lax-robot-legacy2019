@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
   TickMeter timerT;
 
   createTrackbars();
-  bool showWindows = false;
+  bool showWindows = true;
 
   HSV.calcValues();
 
@@ -154,6 +154,8 @@ int main(int argc, char* argv[]) {
 
   double frameTimeTotal = 0;
   int iterations = 0;
+
+  VideoWriter outVid("ResultL.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, Size(FRAME_WIDTH, FRAME_HEIGHT));
 
   for (;;) {
     frameTime = 0;
@@ -174,12 +176,19 @@ int main(int argc, char* argv[]) {
         captureL->showThreshold();
         captureR->showThreshold();
       }
+
+      outVid << captureL->currFrame;
     }
 
     frameTimeTotal = frameTimeTotal + frameTime;
     iterations++;
 
     cout << "FPS: " << 1/((frameTimeTotal/iterations)/2)<< endl;
+    for (auto &i : captureL->result_vec) {
+      cout << "obj_id = " << i.obj_id << ",  x = " << i.x << ", y = " << i.y
+        << ", w = " << i.w << ", h = " << i.h << ", track_id = " << (i.track_id ? i.track_id : -1)
+        << std::setprecision(3) << ", prob = " << i.prob << endl;
+    }
 
     char c = (char) waitKey( 1 );
     if( c == 'p' )
