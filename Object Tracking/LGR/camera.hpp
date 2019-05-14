@@ -31,8 +31,8 @@ namespace LGR {
     Mat K;
     Mat distortion_coeffs;
 
-    Mat currFrameInt;
-    GpuMat currFrame;
+    Mat currFrame;
+    GpuMat currFrameGPU;
 
     GpuMat HSV;
 
@@ -42,20 +42,21 @@ namespace LGR {
     string modelConfig = "../ML/yolov3.cfg";
     string modelWeights = "../ML/yolov3.weights";
 
-    //Using OpenCV dnn
+    //Using OpenCV DNN
     vector<string> classes;
     Net net;
     string outputLayer;
 
     //Using Darknet DNN
     Detector *detector = new Detector(modelConfig, modelWeights);
+    vector<bbox_t> result_vec;
 
     bool ballFound = false;
     bool useHSV = false;
     double ballPixelX;
     double ballPixelY;
 
-    double ReadFrame(TickMeter* t, HostMem* p_l, Mat* frame);
+    double ReadFrame(TickMeter* t);
     void FrameToHSV();
     void GetThreshold(HSVvalues values);
     Mat FindBallPixels();
@@ -106,19 +107,19 @@ namespace LGR {
 
   }
 
-  double Camera::ReadFrame(TickMeter* t, HostMem* p_l, Mat* frame) {
+  double Camera::ReadFrame(TickMeter* t) {
     t->stop();
     double secs = t->getTimeSec();
     t->reset();
     t->start();
-    cap.read(currFrameInt);
+    cap.read(currFrame);
 
     return secs;
   }
 
   void Camera::FrameToHSV() {
-    currFrame.upload(currFrameInt);
-    cuda::cvtColor(currFrame, HSV, COLOR_BGR2HSV, 4);
+    currFrameGPU.upload(currFrame);
+    cuda::cvtColor(currFrameGPU, HSV, COLOR_BGR2HSV, 4);
   }
 
   void Camera::GetThreshold(HSVvalues values) {
@@ -157,8 +158,6 @@ namespace LGR {
     vector<Vec4i> hierarchy;
     Mat undistoredCoord;
     Mat ballCoord(1, 1, CV_64FC2);
-    ballPixelX = 0;
-    ballPixelY = 0;
 
     findContours(outputThreshold, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
 
@@ -195,72 +194,75 @@ namespace LGR {
       undistortPoints(ballCoord, undistoredCoord, K, distortion_coeffs);
     }
 
-
     return ballCoord;
   }
 
-  // Mat Camera::findBallML() {
-  //   Mat ballCoord(1, 1, CV_64FC2);
-  //   Mat blob = blobFromImage(currFrameInt, 1/255.0, Size(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
-  //   net.setInput(blob);
-  //
-  //   Mat outs;
-  //   net.forward(outs, outputLayer);
-  //
-  //   float* data = (float*)outs.data;
-  //   vector<float> confidences;
-  //   vector<Rect> boxes;
-  //
-  //   int rows = outs.rows;
-  //   int cols = outs.cols;
-  //   for (int j = 0; j < rows; ++j, data += cols) {
-  //     Mat scores = outs.row(j).colRange(5, cols);
-  //     double confidence;
-  //
-  //     // Get the value and location of the maximum score
-  //     cuda::minMaxLoc(scores, 0, &confidence, 0, 0);
-  //     if (confidence > CONF_THRESHOLD) {
-  //       int centerX = (int)(data[0] * FRAME_WIDTH);
-  //       int centerY = (int)(data[1] * FRAME_HEIGHT);
-  //       int width = (int)(data[2] * FRAME_WIDTH);
-  //       int height = (int)(data[3] * FRAME_HEIGHT);
-  //       int left = centerX - width / 2;
-  //       int top = centerY - height / 2;
-  //
-  //       confidences.push_back((float)confidence);
-  //       boxes.push_back(Rect2d(left, top, width, height));
-  //     }
-  //   }
-  //
-  //   vector<int> indices;
-  //   NMSBoxes(boxes, confidences, CONF_THRESHOLD, NMS_THRESHOLD, indices);
-  //
-  //   ballCoord.at<Vec2d>(0,0)[0] = boxes[indices[0]].x;
-  //   ballCoord.at<Vec2d>(0,0)[1] = boxes[indices[0]].y;
-  //
-  //   return ballCoord;
-  // }
+  /* Old Machine Learning code, uses OpenCV DNN
+
+  Mat Camera::findBallML() {
+    Mat ballCoord(1, 1, CV_64FC2);
+    Mat blob = blobFromImage(currFrame, 1/255.0, Size(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
+    net.setInput(blob);
+
+    Mat outs;
+    net.forward(outs, outputLayer);
+
+    float* data = (float*)outs.data;
+    vector<float> confidences;
+    vector<Rect> boxes;
+
+    int rows = outs.rows;
+    int cols = outs.cols;
+    for (int j = 0; j < rows; ++j, data += cols) {
+      Mat scores = outs.row(j).colRange(5, cols);
+      double confidence;
+
+      // Get the value and location of the maximum score
+      cuda::minMaxLoc(scores, 0, &confidence, 0, 0);
+      if (confidence > CONF_THRESHOLD) {
+        int centerX = (int)(data[0] * FRAME_WIDTH);
+        int centerY = (int)(data[1] * FRAME_HEIGHT);
+        int width = (int)(data[2] * FRAME_WIDTH);
+        int height = (int)(data[3] * FRAME_HEIGHT);
+        int left = centerX - width / 2;
+        int top = centerY - height / 2;
+
+        confidences.push_back((float)confidence);
+        boxes.push_back(Rect2d(left, top, width, height));
+      }
+    }
+
+    vector<int> indices;
+    NMSBoxes(boxes, confidences, CONF_THRESHOLD, NMS_THRESHOLD, indices);
+
+    ballCoord.at<Vec2d>(0,0)[0] = boxes[indices[0]].x;
+    ballCoord.at<Vec2d>(0,0)[1] = boxes[indices[0]].y;
+
+    return ballCoord;
+  }
+  */
 
   Mat Camera::findBallML() {
     Mat ballCoord(1, 1, CV_64FC2);
 
-  	std::vector<bbox_t> result_vec = detector->detect(currFrameInt);
+  	result_vec = detector->detect(currFrame);
 
-    if(result_vec.size() > 0){
-      ballFound = true;
+    if ((ballFound = result_vec.size() > 0)) {
       ballCoord.at<Vec2d>(0,0)[0] = result_vec[0].x;
-      ballCoord.at<Vec2d>(0,0)[1] = result_vec[0].y;
       ballPixelX = result_vec[0].x;
+      ballCoord.at<Vec2d>(0,0)[1] = result_vec[0].y;
       ballPixelY = result_vec[0].y;
-    } else {
-      ballFound = false;
+      for (auto &i : result_vec) {
+        cout << "obj_id = " << i.obj_id << ",  x = " << i.x << ", y = " << i.y
+      		<< ", w = " << i.w << ", h = " << i.h
+      		<< std::setprecision(3) << ", prob = " << i.prob << endl;
+      }
     }
 
-
     return ballCoord;
-
   }
 
+  // TO DO if needed
   Mat Camera::trackBall() {
     return findBallML();
   }
@@ -281,30 +283,40 @@ namespace LGR {
 
   void Camera::drawObject() {
     if (ballFound) {
-      circle(currFrameInt, Point(ballPixelX, ballPixelY), 20, Scalar(0, 255, 0), 2);
+      circle(currFrame, Point(ballPixelX, ballPixelY), 20, Scalar(0, 255, 0), 2);
       if (ballPixelY - 25 > 0)
-        line(currFrameInt,  Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY-25), Scalar(0, 255, 0), 2);
+        line(currFrame,  Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY-25), Scalar(0, 255, 0), 2);
       else
-        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX, 0), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX, 0), Scalar(0, 255, 0), 2);
       if (ballPixelY + 25 < FRAME_HEIGHT)
-        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY+25), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY+25), Scalar(0, 255, 0), 2);
       else
-        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX,  FRAME_HEIGHT), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX,  FRAME_HEIGHT), Scalar(0, 255, 0), 2);
       if (ballPixelX - 25 > 0)
-        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX-25, ballPixelY), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX-25, ballPixelY), Scalar(0, 255, 0), 2);
       else
-        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(0, ballPixelY), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballPixelX, ballPixelY), Point(0, ballPixelY), Scalar(0, 255, 0), 2);
       if (ballPixelX + 25 < FRAME_WIDTH)
-        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(ballPixelX+25, ballPixelY), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX+25, ballPixelY), Scalar(0, 255, 0), 2);
       else
-        line(currFrameInt, Point(ballPixelX, ballPixelY), Point(FRAME_WIDTH, ballPixelY), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballPixelX, ballPixelY), Point(FRAME_WIDTH, ballPixelY), Scalar(0, 255, 0), 2);
 
-      putText(currFrameInt, to_string(ballPixelX) + ", " + to_string(ballPixelY), Point(ballPixelX, ballPixelY+30), 1, 1, Scalar(0, 255, 0), 2);
+      putText(currFrame, to_string(ballPixelX) + ", " + to_string(ballPixelY), Point(ballPixelX, ballPixelY+30), 1, 1, Scalar(0, 255, 0), 2);
+    }
+    else if (!useHSV) {
+      for (auto &i : result_vec) {
+        Scalar color(60, 160, 260);
+        rectangle(currFrame, Rect(i.x, i.y, i.w, i.h), color, 3);
+        if(obj_names.size() > i.obj_id)
+          putText(currFrame, "laxball", Point2f(i.x, i.y - 10), FONT_HERSHEY_COMPLEX_SMALL, 1, color);
+        if(i.track_id > 0)
+          putText(currFrame, to_string(i.track_id), cv::Point2f(i.x+5, i.y + 15), FONT_HERSHEY_COMPLEX_SMALL, 1, color);
+      }
     }
   }
 
   void Camera::showOriginal() {
-    imshow(name + " Original Image", currFrameInt);
+    imshow(name + " Original Image", currFrame);
   }
 
   void Camera::showHSV() {

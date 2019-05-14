@@ -8,20 +8,18 @@ namespace LGR {
     Axis X = Axis("X");
     Axis Y = Axis("Y");
     Axis Z = Axis("Z");
-    
+
     TickMeter t;
-    
-    
-    
+
     int consecFramesFound = 0;
-    
+
     void nextCoords(double newX, double newY, double newZ);
     void calcFinalPos(double dt, Robot* r);
-    
+
     void print();
     void reset();
   };
-  
+
   void Ball::calcFinalPos(double dt, Robot* r) {
     if (consecFramesFound < 2) {
         return;
@@ -55,23 +53,23 @@ namespace LGR {
         r->DestY = Y.p1;
     }
   }
-  
+
   void Ball::nextCoords(double newX, double newY, double newZ) {
     X.stepTime(newX);
     Y.stepTime(newY);
     Z.stepTime(newZ);
-    
+
     consecFramesFound++;
   }
-  
+
   void Ball::reset() {
     X.reset();
     Y.reset();
     Z.reset();
-    
+
     consecFramesFound = 0;
   }
-  
+
   void Ball::print() {
     X.print();
     Y.print();
