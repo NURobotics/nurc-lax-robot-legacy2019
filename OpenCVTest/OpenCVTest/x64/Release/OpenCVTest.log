@@ -1,0 +1,10 @@
+﻿  pch.cpp
+  OpenCVTest.cpp
+c:\users\nu robotics\source\repos\opencvtest\opencvtest\opencvtest.cpp(128): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+c:\users\nu robotics\source\repos\opencvtest\opencvtest\opencvtest.cpp(129): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  Generating code
+  78 of 308 functions (25.3%) were compiled, the rest were copied from previous compilation.
+    51 functions were new in current compilation
+    47 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  OpenCVTest.vcxproj -> C:\Users\NU Robotics\source\repos\OpenCVTest\x64\Release\OpenCVTest.exe
