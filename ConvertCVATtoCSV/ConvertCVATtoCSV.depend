@@ -1,0 +1,22 @@
+# depslib dependency file v1.0
+1555291866 source:/home/nurc/Documents/ConvertCVATtoCSV/main.cpp
+	<iostream>
+	<fstream>
+	<vector>
+	<map>
+	<bits/stdc++.h>
+	"rapidxml_utils.hpp"
+
+1242197178 /home/nurc/Documents/ConvertCVATtoCSV/rapidxml.hpp
+	<cstdlib>
+	<cassert>
+	<new>
+	<exception>
+
+1242445762 /home/nurc/Documents/ConvertCVATtoCSV/rapidxml_utils.hpp
+	"rapidxml.hpp"
+	<vector>
+	<string>
+	<fstream>
+	<stdexcept>
+
