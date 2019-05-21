@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1556677866 source:c:\users\aed6360\desktop\opencvtest\main.cpp
+	<opencv2/core/utility.hpp>
+	<opencv2/tracking.hpp>
+	<opencv2/highgui.hpp>
+	<iostream>
+
