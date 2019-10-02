@@ -1,0 +1,5 @@
+*.caffemodel
+*.avi
+*.weights
+*.backup
+*.prototxt
