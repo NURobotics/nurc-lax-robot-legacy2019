@@ -18,9 +18,9 @@ using namespace std;
 using namespace LGR;
 
 HSVvalues HSV;
-Ball* LAXBall = new Ball();
-Robot* LAXBot = new Robot();
-mController* Roboteq = new mController();
+Ball LAXBall = Ball();
+Robot LAXBot = Robot();
+mController Roboteq = mController();
 
 double projLData[] = {1072.6, 0, 680.724, -194.14, 0, 1073.69, 383.223, 0, 0, 0, 1, 0};
 double projRData[] = {1051.57, 0, 630.838, 190.334, 0, 1052.83, 341.993, 0, 0, 0, 1, 0};
@@ -59,34 +59,34 @@ void createTrackbars() {
   createTrackbar( "VMax", trackbarWindowName, &HSV.VMax, HSV.VMax, on_trackbar );
 }
 
-Mat GetCooridnates(Camera* capture, TickMeter* t) {
+Mat GetCooridnates(Camera& capture, TickMeter& t) {
 
-  frameTime += capture->ReadFrame(t);
+  frameTime += capture.ReadFrame(t);
 
-  if (capture->useHSV) {
-    capture->FrameToHSV();
-    capture->GetThreshold(HSV);
+  if (capture.useHSV) {
+    capture.FrameToHSV();
+    capture.GetThreshold(HSV);
   }
 
-  return capture->FindBallPixels();
+  return capture.FindBallPixels();
 }
 
 void MoveRobot() {
   triangulatePoints(projL, projR, ballCoordL, ballCoordR, P);
 
-  LAXBall->nextCoords(P.at<double>(0,0)/P.at<double>(3,0),
+  LAXBall.nextCoords(P.at<double>(0,0)/P.at<double>(3,0),
                      P.at<double>(1,0)/P.at<double>(3,0),
                      -P.at<double>(2,0)/P.at<double>(3,0));
 
-  LAXBall->calcFinalPos(frameTime/2, LAXBot);
-  Roboteq->calcCounts(LAXBot);
-  //Roboteq->sendAngles();
+  LAXBall.calcFinalPos(frameTime/2, LAXBot);
+  Roboteq.calcCounts(LAXBot);
+  //Roboteq.sendAngles();
 }
 
 class MainEvent : public ParallelLoopBody {
   public:
-    MainEvent(Camera* captureL, TickMeter* timerL,
-              Camera* captureR, TickMeter* timerR)
+    MainEvent(Camera& captureL, TickMeter& timerL,
+              Camera& captureR, TickMeter& timerR)
                 : p_captureL(captureL), p_timerL(timerL),
                   p_captureR(captureR), p_timerR(timerR) {}
 
@@ -98,11 +98,11 @@ class MainEvent : public ParallelLoopBody {
           case 1: ballCoordR = GetCooridnates(p_captureR, p_timerR);
             break;
           case 2:
-            if (p_captureL->ballFound && p_captureL->ballFound) {
+            if (p_captureL.ballFound && p_captureL.ballFound) {
               MoveRobot();
             }
             else {
-              LAXBall->reset();
+              LAXBall.reset();
             }
             break;
         }
@@ -114,10 +114,10 @@ class MainEvent : public ParallelLoopBody {
     };
 
   private:
-    Camera* p_captureL;
-    TickMeter* p_timerL;
-    Camera* p_captureR;
-    TickMeter* p_timerR;
+    Camera& p_captureL;
+    TickMeter& p_timerL;
+    Camera& p_captureR;
+    TickMeter& p_timerR;
 };
 
 int main(int argc, char* argv[]) {
@@ -133,8 +133,8 @@ int main(int argc, char* argv[]) {
   const Mat distortion_coeffsL(5, 1, CV_64F, distortion_coeffsLData);
   const Mat distortion_coeffsR(5, 1, CV_64F, distortion_coeffsRData);
 
-  Camera* captureL = new Camera("Left Cam", 1, projL, KL, distortion_coeffsL);
-  Camera* captureR = new Camera("Right Cam", 2, projR, KR, distortion_coeffsR);
+  Camera captureL = Camera("Left Cam", 1, projL, KL, distortion_coeffsL);
+  Camera captureR = Camera("Right Cam", 2, projR, KR, distortion_coeffsR);
 
   TickMeter timerL;
   TickMeter timerR;
@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
 
   HSV.calcValues();
 
-  MainEvent mainEvent(captureL, &timerL,
-                      captureR, &timerR);
+  MainEvent mainEvent(captureL, timerL,
+                      captureR, timerR);
 
   //Roboteq.configure();
   timerL.start();
@@ -163,28 +163,28 @@ int main(int argc, char* argv[]) {
     parallel_for_(Range(0, 3), mainEvent);
 
     if (showWindows) {
-      captureL->drawObject();
-      captureR->drawObject();
+      captureL.drawObject();
+      //captureR.drawObject();
 
-      captureL->showOriginal();
-      captureR->showOriginal();
+      captureL.showOriginal();
+      //captureR.showOriginal();
 
-      if (captureL->useHSV) {
-        captureL->showHSV();
-        captureR->showHSV();
+      if (captureL.useHSV) {
+        captureL.showHSV();
+        captureR.showHSV();
 
-        captureL->showThreshold();
-        captureR->showThreshold();
+        captureL.showThreshold();
+        captureR.showThreshold();
       }
 
-      outVid << captureL->currFrame;
+      outVid << captureL.currFrame;
     }
 
     frameTimeTotal = frameTimeTotal + frameTime;
     iterations++;
 
     cout << "FPS: " << 1/((frameTimeTotal/iterations)/2)<< endl;
-    for (auto &i : captureL->result_vec) {
+    for (auto &i : captureL.result_vec) {
       cout << "obj_id = " << i.obj_id << ",  x = " << i.x << ", y = " << i.y
         << ", w = " << i.w << ", h = " << i.h << ", track_id = " << (i.track_id ? i.track_id : -1)
         << std::setprecision(3) << ", prob = " << i.prob << endl;

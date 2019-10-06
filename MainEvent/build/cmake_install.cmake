@@ -1,4 +1,4 @@
-# Install script for directory: /home/nurc/Documents/nurc-lax-robot/Main Event
+# Install script for directory: /home/nurc/Documents/nurc-lax-robot/MainEvent
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/nurc/Documents/nurc-lax-robot/Main Event/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/nurc/Documents/nurc-lax-robot/MainEvent/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

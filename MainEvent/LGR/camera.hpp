@@ -39,8 +39,8 @@ namespace LGR {
     GpuMat threshold;
     Mat outputThreshold;
 
-    string modelConfig = "../ML/yolov3.cfg";
-    string modelWeights = "../ML/yolov3.weights";
+    string modelConfig = "../ML/yolov3_tiny.cfg";
+    string modelWeights = "../ML/yolov3_tiny.weights";
 
     //Using OpenCV DNN
     vector<string> classes;
@@ -56,7 +56,7 @@ namespace LGR {
     double ballPixelX;
     double ballPixelY;
 
-    double ReadFrame(TickMeter* t);
+    double ReadFrame(TickMeter& t);
     void FrameToHSV();
     void GetThreshold(HSVvalues values);
     Mat FindBallPixels();
@@ -107,11 +107,11 @@ namespace LGR {
 
   }
 
-  double Camera::ReadFrame(TickMeter* t) {
-    t->stop();
-    double secs = t->getTimeSec();
-    t->reset();
-    t->start();
+  double Camera::ReadFrame(TickMeter& t) {
+    t.stop();
+    double secs = t.getTimeSec();
+    t.reset();
+    t.start();
     cap.read(currFrame);
 
     return secs;
@@ -197,56 +197,11 @@ namespace LGR {
     return ballCoord;
   }
 
-  /* Old Machine Learning code, uses OpenCV DNN
-
-  Mat Camera::findBallML() {
-    Mat ballCoord(1, 1, CV_64FC2);
-    Mat blob = blobFromImage(currFrame, 1/255.0, Size(NET_SIZE, NET_SIZE), Scalar(0,0,0), true, false);
-    net.setInput(blob);
-
-    Mat outs;
-    net.forward(outs, outputLayer);
-
-    float* data = (float*)outs.data;
-    vector<float> confidences;
-    vector<Rect> boxes;
-
-    int rows = outs.rows;
-    int cols = outs.cols;
-    for (int j = 0; j < rows; ++j, data += cols) {
-      Mat scores = outs.row(j).colRange(5, cols);
-      double confidence;
-
-      // Get the value and location of the maximum score
-      cuda::minMaxLoc(scores, 0, &confidence, 0, 0);
-      if (confidence > CONF_THRESHOLD) {
-        int centerX = (int)(data[0] * FRAME_WIDTH);
-        int centerY = (int)(data[1] * FRAME_HEIGHT);
-        int width = (int)(data[2] * FRAME_WIDTH);
-        int height = (int)(data[3] * FRAME_HEIGHT);
-        int left = centerX - width / 2;
-        int top = centerY - height / 2;
-
-        confidences.push_back((float)confidence);
-        boxes.push_back(Rect2d(left, top, width, height));
-      }
-    }
-
-    vector<int> indices;
-    NMSBoxes(boxes, confidences, CONF_THRESHOLD, NMS_THRESHOLD, indices);
-
-    ballCoord.at<Vec2d>(0,0)[0] = boxes[indices[0]].x;
-    ballCoord.at<Vec2d>(0,0)[1] = boxes[indices[0]].y;
-
-    return ballCoord;
-  }
-  */
-
   Mat Camera::findBallML() {
     Mat ballCoord(1, 1, CV_64FC2);
 
   	result_vec = detector->detect(currFrame, CONF_THRESHOLD);
-    //result_vec = detector->tracking_id(result_vec);
+    result_vec = detector->tracking_id(result_vec);
 
     if ((ballFound = result_vec.size() > 0)) {
       ballCoord.at<Vec2d>(0,0)[0] = result_vec[0].x;

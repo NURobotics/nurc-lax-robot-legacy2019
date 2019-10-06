@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/nurc/Documents/nurc-lax-robot/Main Event/main.cpp" "/home/nurc/Documents/nurc-lax-robot/Main Event/build/CMakeFiles/cv_nurc_lax.dir/main.cpp.o"
+  "/home/nurc/Documents/nurc-lax-robot/MainEvent/main.cpp" "/home/nurc/Documents/nurc-lax-robot/MainEvent/build/CMakeFiles/cv_nurc_lax.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

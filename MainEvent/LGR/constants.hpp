@@ -10,7 +10,7 @@ using namespace std;
 
 #define GRAVITY 9.80665
 
-#define CONF_THRESHOLD 0.6 // Confidence threshold
+#define CONF_THRESHOLD 0.4 // Confidence threshold
 
 // For OpenCV DNN
 #define NMS_THRESHOLD 0.4 // Non-maximum suppression threshold

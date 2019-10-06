@@ -15,13 +15,13 @@ namespace LGR {
     int consecFramesFound = 0;
 
     void nextCoords(double newX, double newY, double newZ);
-    void calcFinalPos(double dt, Robot* r);
+    void calcFinalPos(double dt, Robot& r);
 
     void print();
     void reset();
   };
 
-  void Ball::calcFinalPos(double dt, Robot* r) {
+  void Ball::calcFinalPos(double dt, Robot& r) {
     if (consecFramesFound < 2) {
         return;
     }
@@ -41,17 +41,17 @@ namespace LGR {
         Y.pf = ((Z.p2 * Z.p3 * (Z.p2 - Z.p3) * Y.p1 + Z.p3 * Z.p1 * (Z.p3 - Z.p1) * Y.p2 + Z.p1 * Z.p2 * (Z.p1 - Z.p2) * Y.p3) / ((Z.p1 - Z.p2) * (Z.p1 - Z.p3) * (Z.p2 - Z.p3)))  * (1 - EXP_AVG_WT) + Y.pf * EXP_AVG_WT;
     }
 
-    if (Y.pf < r->Camera_dy_Ground) {
-        Y.pf = - r->Camera_dy_Ground - (Y.pf + r->Camera_dy_Ground);
+    if (Y.pf < r.Camera_dy_Ground) {
+        Y.pf = - r.Camera_dy_Ground - (Y.pf + r.Camera_dy_Ground);
     }
 
-    r->DestX = X.pf;
-    r->DestY = Y.pf;
+    r.DestX = X.pf;
+    r.DestY = Y.pf;
 
 
     if (Z.vel < SLOW_TOL) {
-        r->DestX = X.p1;
-        r->DestY = Y.p1;
+        r.DestX = X.p1;
+        r.DestY = Y.p1;
     }
   }
 

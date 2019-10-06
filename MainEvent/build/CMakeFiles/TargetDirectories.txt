@@ -1,3 +1,3 @@
-/home/nurc/Documents/nurc-lax-robot/Main Event/build/CMakeFiles/rebuild_cache.dir
-/home/nurc/Documents/nurc-lax-robot/Main Event/build/CMakeFiles/cv_nurc_lax.dir
-/home/nurc/Documents/nurc-lax-robot/Main Event/build/CMakeFiles/edit_cache.dir
+/home/nurc/Documents/nurc-lax-robot/MainEvent/build/CMakeFiles/rebuild_cache.dir
+/home/nurc/Documents/nurc-lax-robot/MainEvent/build/CMakeFiles/cv_nurc_lax.dir
+/home/nurc/Documents/nurc-lax-robot/MainEvent/build/CMakeFiles/edit_cache.dir
