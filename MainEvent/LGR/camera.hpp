@@ -17,7 +17,10 @@
 #include "../ML/yolo_v2_class.hpp"
 
 using namespace std;
-using namespace cv;
+using namespace cv;    // classes.push_back("laxball");
+    // net = readNetFromDarknet(modelConfig, modelWeights);
+    // net.setPreferableBackend(DNN_BACKEND_OPENCV);
+    // net.setPreferableTarget(DNN_TARGET_OPENCL);
 using namespace cv::cuda;
 using namespace cv::dnn;
 
@@ -88,23 +91,23 @@ namespace LGR {
     K = k;
     distortion_coeffs = d;
 
-    cap.open("../TestVid.mp4");
+    //cap.open("../TestVid.mp4");
+    cap.open("/dev/video" + to_string(f), CAP_V4L2);
+    
+    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+    cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
-    // cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
-    // cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-    // cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
-    //
+
     // classes.push_back("laxball");
     // net = readNetFromDarknet(modelConfig, modelWeights);
     // net.setPreferableBackend(DNN_BACKEND_OPENCV);
     // net.setPreferableTarget(DNN_TARGET_OPENCL);
-    //
-    // vector<int> outLayers = net.getUnconnectedOutLayers();
-    // // vector<String> layersNames = net.getLayerNames();
-    //
-    // outputLayer = layersNames[outLayers[0]];
 
+    vector<int> outLayers = net.getUnconnectedOutLayers();
+    // vector<String> layersNames = net.getLayerNames();
 
+    //outputLayer = layersNames[outLayers[0]];
   }
 
   double Camera::ReadFrame(TickMeter& t) {
@@ -112,7 +115,9 @@ namespace LGR {
     double secs = t.getTimeSec();
     t.reset();
     t.start();
+    cout << secs << endl;
     cap.read(currFrame);
+
 
     return secs;
   }

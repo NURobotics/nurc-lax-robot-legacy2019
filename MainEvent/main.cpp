@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
   const Mat distortion_coeffsL(5, 1, CV_64F, distortion_coeffsLData);
   const Mat distortion_coeffsR(5, 1, CV_64F, distortion_coeffsRData);
 
-  Camera captureL = Camera("Left Cam", 1, projL, KL, distortion_coeffsL);
+  Camera captureL = Camera("Left Cam", 0, projL, KL, distortion_coeffsL);
   Camera captureR = Camera("Right Cam", 2, projR, KR, distortion_coeffsR);
 
   TickMeter timerL;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
   double frameTimeTotal = 0;
   int iterations = 0;
 
-  VideoWriter outVid("ResultL.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, Size(FRAME_WIDTH, FRAME_HEIGHT));
+  //VideoWriter outVid("ResultL.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, Size(FRAME_WIDTH, FRAME_HEIGHT));
 
   for (;;) {
     frameTime = 0;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         captureR.showThreshold();
       }
 
-      outVid << captureL.currFrame;
+      //outVid << captureL.currFrame;
     }
 
     frameTimeTotal = frameTimeTotal + frameTime;
