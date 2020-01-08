@@ -1,0 +1,59 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/*styling links in the navigation bar*/
+.topnav {
+  background-color: #663A90;
+  overflow: hidden;
+}
+
+/*how the entire navigation bar is gonna look like*/
+.topnav a {
+  float: left;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+/*will make a bunch of other funky effects to it, what will happen when you hover on to it*/
+.topnav a:hover{
+  background-color: dimgray;
+  color: white;
+}
+
+.topnav a.active {
+  background-color: dimgray;
+  color: white;
+}
+
+.p01 {
+  background-color: #663A90;
+  color: white;
+  text-align: center;
+  padding: 10px 12px;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.button{
+  background-color: black;
+  color: white;
+  padding: 13px 25px;
+  border: 2px solid white;
+  text-align: left;
+  text-decoration: none;
+  font-size: 14px;
+  margin: 4px 2px;
+}
+
+.button:active{
+  background-color: white;
+  color:black;
+}
+
+h2{
+  color: dimgray;
+}
