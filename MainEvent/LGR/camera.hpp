@@ -91,12 +91,12 @@ namespace LGR {
     K = k;
     distortion_coeffs = d;
 
-    //cap.open("../TestVid.mp4");
-    cap.open("/dev/video" + to_string(f), CAP_V4L2);
+    cap.open("../VID_0.mp4");
+    //cap.open("/dev/video" + to_string(f), CAP_V4L2);
     
-    cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
-    cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-    cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+    //cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    //cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+    //cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
 
     // classes.push_back("laxball");

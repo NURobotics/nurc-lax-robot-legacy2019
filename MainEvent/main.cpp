@@ -193,6 +193,15 @@ int main(int argc, char* argv[]) {
     char c = (char) waitKey( 1 );
     if( c == 'p' )
       showWindows = !showWindows;
+    if( c == 'n' )
+      continue;
+    else {
+      while (true) {
+        char c = (char) waitKey( 1 );
+        if( c == 'n' )
+          break;
+      }
+    }
   }
 
   return 0;
