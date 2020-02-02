@@ -1,25 +1,25 @@
 Determining if the pthread_create exist failed with the following output:
-Change Dir: /media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp
+Change Dir: /home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_eadf5/fast"
-/usr/bin/make -f CMakeFiles/cmTC_eadf5.dir/build.make CMakeFiles/cmTC_eadf5.dir/build
-make[1]: Entering directory '/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_eadf5.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -fPIC    -o CMakeFiles/cmTC_eadf5.dir/CheckSymbolExists.c.o   -c "/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c"
-Linking C executable cmTC_eadf5
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eadf5.dir/link.txt --verbose=1
-/usr/bin/cc  -fPIC     CMakeFiles/cmTC_eadf5.dir/CheckSymbolExists.c.o  -o cmTC_eadf5 -rdynamic 
-CMakeFiles/cmTC_eadf5.dir/CheckSymbolExists.c.o: In function `main':
+Run Build Command:"/usr/bin/make" "cmTC_0df7c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0df7c.dir/build.make CMakeFiles/cmTC_0df7c.dir/build
+make[1]: Entering directory '/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0df7c.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -fPIC    -o CMakeFiles/cmTC_0df7c.dir/CheckSymbolExists.c.o   -c /home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_0df7c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0df7c.dir/link.txt --verbose=1
+/usr/bin/cc  -fPIC     CMakeFiles/cmTC_0df7c.dir/CheckSymbolExists.c.o  -o cmTC_0df7c -rdynamic 
+CMakeFiles/cmTC_0df7c.dir/CheckSymbolExists.c.o: In function `main':
 CheckSymbolExists.c:(.text+0x14): undefined reference to `pthread_create'
 CheckSymbolExists.c:(.text+0x18): undefined reference to `pthread_create'
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_eadf5.dir/build.make:97: recipe for target 'cmTC_eadf5' failed
-make[1]: *** [cmTC_eadf5] Error 1
-make[1]: Leaving directory '/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_eadf5/fast' failed
-make: *** [cmTC_eadf5/fast] Error 2
+CMakeFiles/cmTC_0df7c.dir/build.make:97: recipe for target 'cmTC_0df7c' failed
+make[1]: *** [cmTC_0df7c] Error 1
+make[1]: Leaving directory '/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_0df7c/fast' failed
+make: *** [cmTC_0df7c/fast] Error 2
 
-File /media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+File /home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
 #include <pthread.h>
 
@@ -35,22 +35,22 @@ int main(int argc, char** argv)
 }
 
 Determining if the function pthread_create exists in the pthreads failed with the following output:
-Change Dir: /media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp
+Change Dir: /home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_3323d/fast"
-/usr/bin/make -f CMakeFiles/cmTC_3323d.dir/build.make CMakeFiles/cmTC_3323d.dir/build
-make[1]: Entering directory '/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_3323d.dir/CheckFunctionExists.c.o
-/usr/bin/cc    -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_3323d.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
-Linking C executable cmTC_3323d
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3323d.dir/link.txt --verbose=1
-/usr/bin/cc  -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_3323d.dir/CheckFunctionExists.c.o  -o cmTC_3323d -rdynamic -lpthreads 
+Run Build Command:"/usr/bin/make" "cmTC_9ac4a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9ac4a.dir/build.make CMakeFiles/cmTC_9ac4a.dir/build
+make[1]: Entering directory '/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_9ac4a.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_9ac4a.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_9ac4a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9ac4a.dir/link.txt --verbose=1
+/usr/bin/cc  -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_9ac4a.dir/CheckFunctionExists.c.o  -o cmTC_9ac4a -rdynamic -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_3323d.dir/build.make:97: recipe for target 'cmTC_3323d' failed
-make[1]: *** [cmTC_3323d] Error 1
-make[1]: Leaving directory '/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_3323d/fast' failed
-make: *** [cmTC_3323d/fast] Error 2
+CMakeFiles/cmTC_9ac4a.dir/build.make:97: recipe for target 'cmTC_9ac4a' failed
+make[1]: *** [cmTC_9ac4a] Error 1
+make[1]: Leaving directory '/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_9ac4a/fast' failed
+make: *** [cmTC_9ac4a/fast] Error 2
 
 

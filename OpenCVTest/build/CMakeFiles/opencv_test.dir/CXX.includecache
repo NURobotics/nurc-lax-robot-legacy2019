@@ -29,6 +29,12 @@ opencv2/highgui/highgui.hpp
 -
 opencv2/videoio/videoio.hpp
 -
+pthread.h
+-
+stdio.h
+-
+stdlib.h
+-
 
 /usr/local/include/opencv4/opencv2/calib3d.hpp
 opencv2/core.hpp

@@ -1,3 +1,3 @@
-/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/rebuild_cache.dir
-/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/edit_cache.dir
-/media/nvidia/USB1/Tracking test/OpencvTest/build/CMakeFiles/cv_nurc_lax.dir
+/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/rebuild_cache.dir
+/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/edit_cache.dir
+/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/CMakeFiles/cv_nurc_lax.dir

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_FLAGS =   -std=gnu++11
 
-CXX_DEFINES = -DOPENCV_TRAITS_ENABLE_DEPRECATED
+CXX_DEFINES = 
 
-CXX_INCLUDES = -isystem /usr/local/include -isystem /usr/local/include/opencv -I/usr/local/cuda-9.0/include 
+CXX_INCLUDES = -isystem /usr/local/include/opencv4 -I/usr/local/cuda-9.0/include 
 
