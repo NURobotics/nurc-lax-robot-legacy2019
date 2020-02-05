@@ -16,7 +16,8 @@
 
 using namespace cv;
 using namespace std;
-
+const Size S = Size(1280, 720);
+/*
 queue<Mat> leftCam;
 queue<Mat> rightCam;
 
@@ -28,7 +29,6 @@ int vidCountLeft = 0;
 int vidCountRight = 0;
 string nameL = "VID_0";
 string nameR = "VID_0";
-const Size S = Size(1280, 720);
 
 VideoWriter outLeft("FootageL/VID_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, S);
 VideoWriter outRight("FootageR/VID_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, S);
@@ -261,12 +261,12 @@ void showCamera2() {
 	//VideoCapture captureR("v4l2src device=/dev/video2 ! video/x-raw, width=(int)1280, height=(int)720, format=(string)I420, framerate=(fraction)60/1 ! \
 			videoconvert ! video/x-raw, format=(string)BGR ! \
 			appsink");
-}
+}*/
 
 void recordLeft() {
   cpu_set_t set;
   CPU_ZERO(&set);
-  CPU_SET(0, &set);
+  CPU_SET(1, &set);
   
   pthread_t thread;
   thread = pthread_self();
@@ -301,7 +301,7 @@ void recordLeft() {
 void recordRight() {
   cpu_set_t set;
   CPU_ZERO(&set);
-  CPU_SET(1, &set);
+  CPU_SET(2, &set);
   
   pthread_t thread;
   thread = pthread_self();

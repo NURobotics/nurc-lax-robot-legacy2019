@@ -4,14 +4,14 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/nvidia/nurc-lax-robot/OpenCVTest/OpenCVTest.cpp" "/home/nvidia/nurc-lax-robot/OpenCVTest/build/CMakeFiles/opencv_test.dir/OpenCVTest.cpp.o"
+  "/home/nurc/nurc-lax-robot/OpenCVTest/OpenCVTest.cpp" "/home/nurc/nurc-lax-robot/OpenCVTest/build/CMakeFiles/opencv_test.dir/OpenCVTest.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/usr/local/include/opencv4"
-  "/usr/local/cuda-9.0/include"
+  "/usr/include/opencv4"
+  "/usr/local/cuda-10.0/include"
   )
 
 # Targets to which this target links.
