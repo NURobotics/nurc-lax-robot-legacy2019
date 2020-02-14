@@ -97,11 +97,6 @@ namespace LGR {
     Ptr<Tracker> tracker = TrackerKCF::create(); //need to research this tracker_algorithm
   };
 
-
-
-
-
-
   Camera::Camera(string n, int f, Mat p, Mat k, Mat d) {
     name = n;
     feed = f;
@@ -146,7 +141,6 @@ namespace LGR {
   }
 
   void Camera::GetThreshold(HSVvalues values) {
-
     GpuMat HSVchannels[4];
     GpuMat thresholdMaxchannels[3];
     GpuMat thresholdMinchannels[3];
@@ -229,9 +223,10 @@ namespace LGR {
     if ((ballFound = result_vec.size() > 0)) {
       ballBox = result_vec[0];
       ballCoord.at<Vec2d>(0,0)[0] = ballBox.x;
-      ballCoord.at<Vec2d>(0,0)[1] = ballBox.y; 
+      ballCoord.at<Vec2d>(0,0)[1] = ballBox.y;
     }
 
+    // TODO: Change ballCoord to a vector;
     return ballCoord; //ball's coordinates
   }
 

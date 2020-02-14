@@ -28,6 +28,8 @@ double projRData[] = {1051.57, 0, 630.838, 190.334, 0, 1052.83, 341.993, 0, 0, 0
 const Mat projL(3, 4, CV_64F, projLData);
 const Mat projR(3, 4, CV_64F, projRData);
 
+// TODO: Change ballCoord to a vector
+// TODO: Create a ballCoord vector that will holds the pairs of matching left and right balls
 Mat ballCoordL(1,1,CV_64FC2);
 Mat ballCoordR(1,1,CV_64FC2);
 
@@ -72,6 +74,7 @@ Mat GetCooridnates(Camera& capture, TickMeter& t) {
 }
 
 void MoveRobot() {
+  // TODO: Line 77, 79, and 83 into a function over multiple balls in the vector of pairs, then check which one will arrive soonest and send that into calcCounts
   triangulatePoints(projL, projR, ballCoordL, ballCoordR, P);
 
   LAXBall.nextCoords(P.at<double>(0,0)/P.at<double>(3,0),
@@ -99,6 +102,7 @@ class MainEvent : public ParallelLoopBody {
             break;
           case 2:
             if (p_captureL.ballFound && p_captureL.ballFound) {
+              // TODO: Write function here to match the balls in the ballCoordL & ballCoordR and put them into vector of pairs
               MoveRobot();
             }
             else {
