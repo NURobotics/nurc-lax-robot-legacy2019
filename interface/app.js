@@ -22,6 +22,54 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+// Functions needed start here
+
+app.get(/*url, function*/ {
+  // press left button, move left
+});
+
+app.get( /*url, function*/ {
+  // press right button, move right
+});
+
+app.get(/*url, function*/ {
+  // press up button, move forward
+});
+
+app.get(/*url, function*/ {
+  //press down button, move back
+});
+
+app.get(/*url, function*/{
+  //press ++(Z) button, speed up 
+});
+
+app.get(/*url, function*/ {
+  //press HALT(X) button, hit the brakes
+});
+
+app.get(/*url, function*/{
+  //press --(C) button, slow down
+});
+
+app.get(/*url, function*/{
+  // press 1 (Begin Visuals), turn on camera
+});
+
+app.get(/*url, function*/{
+  // press 2, start sending information about speed, and ball coordinates and if goalie managed to catch it 
+});
+
+app.get(/*url, function*/{
+  // press 3, stop sending information
+});
+
+app.get(/*url, function*/{
+  // press 4 (End Visuals), turn off camera
+});
+
+//Functions needed ends here
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

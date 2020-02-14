@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
   double frameTimeTotal = 0;
   int iterations = 0;
 
-  //VideoWriter outVid("ResultL.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, Size(FRAME_WIDTH, FRAME_HEIGHT));
+  VideoWriter outVid("Result0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, Size(FRAME_WIDTH, FRAME_HEIGHT));
 
   for (;;) {
     frameTime = 0;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         captureR.showThreshold();
       }
 
-      //outVid << captureL.currFrame;
+      outVid << captureL.currFrame;
     }
 
     frameTimeTotal = frameTimeTotal + frameTime;
@@ -193,15 +193,6 @@ int main(int argc, char* argv[]) {
     char c = (char) waitKey( 1 );
     if( c == 'p' )
       showWindows = !showWindows;
-    if( c == 'n' )
-      continue;
-    else {
-      while (true) {
-        char c = (char) waitKey( 1 );
-        if( c == 'n' )
-          break;
-      }
-    }
   }
 
   return 0;

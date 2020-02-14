@@ -1,4 +1,4 @@
-# Install script for directory: /media/nvidia/USB1/Tracking test/OpencvTest
+# Install script for directory: /home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/media/nvidia/USB1/Tracking test/OpencvTest/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/nvidia/nurc-lax-robot/TrackingTest/OpencvTest/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

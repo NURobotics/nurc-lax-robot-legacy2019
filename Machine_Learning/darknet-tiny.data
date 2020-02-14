@@ -1,5 +1,0 @@
-classes = 1
-train  = /home/nurc/Documents/nurc-lax-robot/Machine_Learning/laxball_train.txt
-valid  = /home/nurc/Documents/nurc-lax-robot/Machine_Learning/laxball_test.txt
-names = /home/nurc/Documents/nurc-lax-robot/Machine_Learning/classes.names
-backup = /home/nurc/Documents/nurc-lax-robot/Machine_Learning/weights64_tiny_704/

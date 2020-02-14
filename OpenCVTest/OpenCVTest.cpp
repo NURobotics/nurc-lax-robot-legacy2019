@@ -10,9 +10,14 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/videoio/videoio.hpp>
 
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 using namespace cv;
 using namespace std;
-
+const Size S = Size(1280, 720);
+/*
 queue<Mat> leftCam;
 queue<Mat> rightCam;
 
@@ -24,7 +29,6 @@ int vidCountLeft = 0;
 int vidCountRight = 0;
 string nameL = "VID_0";
 string nameR = "VID_0";
-const Size S = Size(1280, 720);
 
 VideoWriter outLeft("FootageL/VID_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, S);
 VideoWriter outRight("FootageR/VID_0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, S);
@@ -33,8 +37,8 @@ void processVideo(VideoCapture& cap, bool left) {
 	Mat frame;
 	cap.read(frame);
 
-	//if (left) leftCam.push(frame);
-	//else rightCam.push(frame);
+	if (left) leftCam.push(frame);
+	else rightCam.push(frame);
 }
 
 void vidToPng() {
@@ -96,16 +100,37 @@ class MainEvent : public ParallelLoopBody {
         switch (r) {
           case 0:
              if (recording) {
+              cpu_set_t set;
+              CPU_ZERO(&set);
+              CPU_SET(0, &set);
+              
+              pthread_t thread;
+              thread = pthread_self();
+              pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
               processVideo(p_captureL, true);
              }
             break;
           case 1:
              if (recording) {
+              cpu_set_t set;
+              CPU_ZERO(&set);
+              CPU_SET(1, &set);
+              
+              pthread_t thread;
+              thread = pthread_self();
+              pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
               processVideo(p_captureR, false);
              }
             break;
           case 2:
             if (!toSaveLeft.empty()) {
+              cpu_set_t set;
+              CPU_ZERO(&set);
+              CPU_SET(2, &set);
+              
+              pthread_t thread;
+              thread = pthread_self();
+              pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
               queue<Mat>& currSave = toSaveLeft.front();
               if (currSave.empty()) {
                 cout << "FootageL/" + nameL + ".avi Completed" << endl;
@@ -129,6 +154,13 @@ class MainEvent : public ParallelLoopBody {
             break;
           case 3:
             if (!toSaveRight.empty()) {
+              cpu_set_t set;
+              CPU_ZERO(&set);
+              CPU_SET(3, &set);
+              
+              pthread_t thread;
+              thread = pthread_self();
+              pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
               queue<Mat>& currSave = toSaveRight.front();
               if (currSave.empty()) {
                 cout << "FootageR/" + nameR + ".avi Completed" << endl;
@@ -145,7 +177,6 @@ class MainEvent : public ParallelLoopBody {
                 outRight = VideoWriter(vidName, VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, S);
               }
               else {
-              cout << "before " << currSave.front().total() << endl;
                 outRight.write(currSave.front());
                 
                 currSave.front().deallocate();
@@ -225,50 +256,91 @@ void collectFrame() {
 	}
 }
 
-void showCamera() {
-	VideoCapture captureL("v4l2src device=/dev/video1 ! video/x-raw, width=(int)1280, height=(int)720, format=(string)I420, framerate=(fraction)60/1 ! \
-			videoconvert ! video/x-raw, format=(string)BGR ! \
-			appsink");
+void showCamera2() {
+	VideoCapture captureL("/dev/video" + to_string(1), CAP_V4L2);
 	//VideoCapture captureR("v4l2src device=/dev/video2 ! video/x-raw, width=(int)1280, height=(int)720, format=(string)I420, framerate=(fraction)60/1 ! \
 			videoconvert ! video/x-raw, format=(string)BGR ! \
 			appsink");
+}*/
+
+void recordLeft() {
+  cpu_set_t set;
+  CPU_ZERO(&set);
+  CPU_SET(1, &set);
+  
+  pthread_t thread;
+  thread = pthread_self();
+  pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
+  
+	VideoCapture captureL("/dev/video" + to_string(1), CAP_V4L2);
+	VideoWriter outLeft("../out.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, S);
 
 	captureL.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
 	captureL.set(CAP_PROP_FPS, 60);
 	captureL.set(CAP_PROP_FRAME_WIDTH, 1280);
 	captureL.set(CAP_PROP_FRAME_HEIGHT, 720);
-
-	//captureR.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
-	//captureR.set(CAP_PROP_FPS, 60);
-	//captureR.set(CAP_PROP_FRAME_WIDTH, 1280);
-	//captureR.set(CAP_PROP_FRAME_HEIGHT, 720);
 	
-	TickMeter tm;
-	int fCount = 0;
-  
-  while(1) {
-    Mat left, right;
+	vector<Mat> outs;
+	
+	while(1) {
+    Mat left;
+    captureL.read(left);
     
-    tm.start();
-    if (captureL.read(left)) fCount++;
-    //captureR.read(right);
-    if (tm.getTimeSec() >= 1) {
-      cout << "Current FPS: " << fCount/tm.getTimeSec() << endl;
-      fCount = 0;
-		  tm.reset();
+    if (outs.size() > 600) {
+      for (Mat o : outs) outLeft << o;
+      outs.clear();
+      break;
     }
-    
-    //waitKey(1);
-    tm.stop();
-    
-    //imshow("Left", left); //imshow("Right", right);
-    cout << 1/tm.getTimeSec() << endl;
-    tm.reset();
+    else {
+      outs.push_back(left.clone());
+    }
   }
+
+}
+
+void recordRight() {
+  cpu_set_t set;
+  CPU_ZERO(&set);
+  CPU_SET(2, &set);
+  
+  pthread_t thread;
+  thread = pthread_self();
+  pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
+  
+	VideoCapture captureL("/dev/video" + to_string(2), CAP_V4L2);
+	VideoWriter outLeft("../out1.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 60, S);
+
+	captureL.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
+	captureL.set(CAP_PROP_FPS, 60);
+	captureL.set(CAP_PROP_FRAME_WIDTH, 1280);
+	captureL.set(CAP_PROP_FRAME_HEIGHT, 720);
+	
+	vector<Mat> outs;
+	
+	while(1) {
+    Mat left;
+    captureL.read(left);
+    
+    if (outs.size() > 600) {
+      for (Mat o : outs) outLeft << o;
+      outs.clear();
+      break;
+    }
+    else {
+      outs.push_back(left.clone());
+    }
+  }
+
 }
 
 int main() {
-  showCamera();
+  thread cameraL(recordLeft);
+  thread cameraR(recordRight);
+  
+  cameraL.join();
+  cameraR.join();
+ 
+  //collectFrame();
   
 	return 0;
 }
