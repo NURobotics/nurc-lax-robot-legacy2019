@@ -15,9 +15,15 @@
 #include "constants.hpp"
 
 #include "../ML/yolo_v2_class.hpp"
+//Kuba put these in here
+#include <opencv2/core/utility.hpp>  // is this the same as core core?
+#include <opencv2/tracking.hpp>
+#include <cstring>
+
 
 using namespace std;
-using namespace cv;    // classes.push_back("laxball");
+using namespace cv;
+    // classes.push_back("laxball");
     // net = readNetFromDarknet(modelConfig, modelWeights);
     // net.setPreferableBackend(DNN_BACKEND_OPENCV);
     // net.setPreferableTarget(DNN_TARGET_OPENCL);
@@ -34,7 +40,7 @@ namespace LGR {
     Mat K;
     Mat distortion_coeffs;
 
-    Mat currFrame;
+    Mat currFrame; //current frame you're looking at (current image) (image)
     GpuMat currFrameGPU;
 
     GpuMat HSV;
@@ -56,13 +62,15 @@ namespace LGR {
 
     bool ballFound = false;
     bool useHSV = false;
-    double ballPixelX;
-    double ballPixelY;
+    double ballBox.x;
+    double ballBox.y;
+    double ballBox.w;
+    double ballBox.h:
 
     double ReadFrame(TickMeter& t);
     void FrameToHSV();
     void GetThreshold(HSVvalues values);
-    Mat FindBallPixels();
+    Mat FindballPositions();
     Mat findBallHSV();
     Mat findBallML();
     Mat trackBall();
@@ -82,7 +90,17 @@ namespace LGR {
 
     const Ptr<Filter> erodeFilter = cuda::createMorphologyFilter(MORPH_ERODE, CV_8UC1, erodeElement);
     const Ptr<Filter> dialateFilter = cuda::createMorphologyFilter(MORPH_DILATE, CV_8UC1, dilateElement);
+
+
+    //Kuba put this stuff here
+    static Rect2d ballBox;
+    Ptr<Tracker> tracker = TrackerKCF::create(); //need to research this tracker_algorithm
   };
+
+
+
+
+
 
   Camera::Camera(string n, int f, Mat p, Mat k, Mat d) {
     name = n;
@@ -93,7 +111,7 @@ namespace LGR {
 
     cap.open("../VID_0.mp4");
     //cap.open("/dev/video" + to_string(f), CAP_V4L2);
-    
+
     //cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
     //cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
     //cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
@@ -178,8 +196,8 @@ namespace LGR {
 	        double area = moment.m00;
 
 	        if (area > MIN_OBJECT_AREA && area < MAX_OBJECT_AREA && area > refArea) {
-		        ballPixelX = moment.m10/area;
-		        ballPixelY = moment.m01/area;
+		        ballBox.x = moment.m10/area;
+		        ballBox.y = moment.m01/area;
 		        ballFound = true;
 		        refArea = area;
 		        double diameter = 2 * sqrt(area / 3.14);
@@ -192,8 +210,8 @@ namespace LGR {
       }
     }
 
-    ballCoord.at<Vec2d>(0,0)[0] = ballPixelX;
-    ballCoord.at<Vec2d>(0,0)[1] = ballPixelY;
+    ballCoord.at<Vec2d>(0,0)[0] = ballBox.x;
+    ballCoord.at<Vec2d>(0,0)[1] = ballBox.y;
 
     if (ballFound) {
       undistortPoints(ballCoord, undistoredCoord, K, distortion_coeffs);
@@ -206,60 +224,64 @@ namespace LGR {
     Mat ballCoord(1, 1, CV_64FC2);
 
   	result_vec = detector->detect(currFrame, CONF_THRESHOLD);
-    result_vec = detector->tracking_id(result_vec);
+    result_vec = detector->tracking_id(result_vec); //this is important for updating the boundingbox
 
     if ((ballFound = result_vec.size() > 0)) {
-      ballCoord.at<Vec2d>(0,0)[0] = result_vec[0].x;
-      ballPixelX = result_vec[0].x;
-      ballCoord.at<Vec2d>(0,0)[1] = result_vec[0].y;
-      ballPixelY = result_vec[0].y;
+      ballBox = result_vec[0];
+      ballCoord.at<Vec2d>(0,0)[0] = ballBox.x;
+      ballCoord.at<Vec2d>(0,0)[1] = ballBox.y; 
     }
 
-    return ballCoord;
+    return ballCoord; //ball's coordinates
   }
 
   // TO DO if needed
   Mat Camera::trackBall() {
-    return findBallML();
+    tracker->update(frame,ballBox);
   }
 
-  Mat Camera::FindBallPixels() {
+  Mat Camera::FindballPositions() {
+    Mat returnMe;
     if (ballFound) {
-      return trackBall();
+      returnMe = trackBall();
     }
     else {
       if (useHSV) {
-        return findBallHSV();
+        returnMe =  findBallHSV();
       }
-      else {
-        return findBallML();
+      else{
+        returnMe = findBallML();
+      }
+      if (ballFound) {
+        tracker->init(currFrame, ballBox) //initiates the ball tracker
       }
     }
+    return returnMe;
   }
 
   void Camera::drawObject() {
     if (ballFound) {
       if (useHSV)
-        circle(currFrame, Point(ballPixelX, ballPixelY), 20, Scalar(0, 255, 0), 2);
-      if (ballPixelY - 25 > 0)
-        line(currFrame,  Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY-25), Scalar(0, 255, 0), 2);
+        circle(currFrame, Point(ballBox.x, ballBox.y), 20, Scalar(0, 255, 0), 2);
+      if (ballBox.y - 25 > 0)
+        line(currFrame,  Point(ballBox.x, ballBox.y), Point(ballBox.x, ballBox.y-25), Scalar(0, 255, 0), 2);
       else
-        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX, 0), Scalar(0, 255, 0), 2);
-      if (ballPixelY + 25 < FRAME_HEIGHT)
-        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX, ballPixelY+25), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x, 0), Scalar(0, 255, 0), 2);
+      if (ballBox.y + 25 < FRAME_HEIGHT)
+        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x, ballBox.y+25), Scalar(0, 255, 0), 2);
       else
-        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX,  FRAME_HEIGHT), Scalar(0, 255, 0), 2);
-      if (ballPixelX - 25 > 0)
-        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX-25, ballPixelY), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x,  FRAME_HEIGHT), Scalar(0, 255, 0), 2);
+      if (ballBox.x - 25 > 0)
+        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x-25, ballBox.y), Scalar(0, 255, 0), 2);
       else
-        line(currFrame, Point(ballPixelX, ballPixelY), Point(0, ballPixelY), Scalar(0, 255, 0), 2);
-      if (ballPixelX + 25 < FRAME_WIDTH)
-        line(currFrame, Point(ballPixelX, ballPixelY), Point(ballPixelX+25, ballPixelY), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballBox.x, ballBox.y), Point(0, ballBox.y), Scalar(0, 255, 0), 2);
+      if (ballBox.x + 25 < FRAME_WIDTH)
+        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x+25, ballBox.y), Scalar(0, 255, 0), 2);
       else
-        line(currFrame, Point(ballPixelX, ballPixelY), Point(FRAME_WIDTH, ballPixelY), Scalar(0, 255, 0), 2);
+        line(currFrame, Point(ballBox.x, ballBox.y), Point(FRAME_WIDTH, ballBox.y), Scalar(0, 255, 0), 2);
 
       if (useHSV)
-        putText(currFrame, to_string(ballPixelX) + ", " + to_string(ballPixelY), Point(ballPixelX, ballPixelY+30), 1, 1, Scalar(0, 255, 0), 2);
+        putText(currFrame, to_string(ballBox.x) + ", " + to_string(ballBox.y), Point(ballBox.x, ballBox.y+30), 1, 1, Scalar(0, 255, 0), 2);
     }
 
     if (!useHSV) {
