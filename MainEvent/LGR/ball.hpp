@@ -15,13 +15,14 @@ namespace LGR {
     int consecFramesFound = 0;
 
     void nextCoords(double newX, double newY, double newZ);
-    void calcFinalPos(double dt, Robot& r);
+    void calcFinalPos(double dt);
 
+    void setRobotPosition(Robot& r);
     void print();
     void reset();
   };
 
-  void Ball::calcFinalPos(double dt, Robot& r) {
+  void Ball::calcFinalPos(double dt) {
     if (consecFramesFound < 2) {
         return;
     }
@@ -44,17 +45,18 @@ namespace LGR {
     if (Y.pf < r.Camera_dy_Ground) {
         Y.pf = - r.Camera_dy_Ground - (Y.pf + r.Camera_dy_Ground);
     }
-
-    r.DestX = X.pf;
-    r.DestY = Y.pf;
-
-
-    if (Z.vel < SLOW_TOL) {
-        r.DestX = X.p1;
-        r.DestY = Y.p1;
-    }
   }
 
+void Ball::setRobotPosition(Robot &r){
+  r.DestX = X.pf;
+  r.DestY = Y.pf;
+
+
+  if (Z.vel < SLOW_TOL) {
+      r.DestX = X.p1;
+      r.DestY = Y.p1;
+  }
+}
   void Ball::nextCoords(double newX, double newY, double newZ) {
     X.stepTime(newX);
     Y.stepTime(newY);

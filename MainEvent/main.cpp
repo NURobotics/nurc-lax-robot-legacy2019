@@ -30,10 +30,13 @@ const Mat projR(3, 4, CV_64F, projRData);
 
 // TODO: Change ballCoord to a vector
 // TODO: Create a ballCoord vector that will holds the pairs of matching left and right balls
-Mat ballCoordL(1,1,CV_64FC2);
-Mat ballCoordR(1,1,CV_64FC2);
-
-Mat P(4,1,CV_64F);
+vector<Mat> ballCoordL; //balls recognized from left camera
+vector<Mat> ballCoordR; //balls recognized from right camera
+vector<pair<Mat,Mat>> pairedBalls;
+vector<Ball> triangulatedBalls
+//holds balls after sorted
+// ancillary code Mat ballCoordL(1,1,CV_64FC2);
+// ancillary code Mat ballCoordR(1,1,CV_64FC2);
 
 double frameTime = 0;
 
@@ -75,13 +78,18 @@ Mat GetCooridnates(Camera& capture, TickMeter& t) {
 
 void MoveRobot() {
   // TODO: Line 77, 79, and 83 into a function over multiple balls in the vector of pairs, then check which one will arrive soonest and send that into calcCounts
-  triangulatePoints(projL, projR, ballCoordL, ballCoordR, P);
+  for (auto ballPair : pairedBalls){
+    Ball new_ball = Ball();
+    Mat P(4,1,CV_64F);
+    triangulatePoints(projL, projR, ballPair.first, ballCoord.second, P);
+    new_ball.nextCoords(P.at<double>(0,0)/P.at<double>(3,0), //81
+                       P.at<double>(1,0)/P.at<double>(3,0),
+                       -P.at<double>(2,0)/P.at<double>(3,0));
+    new_ball.calcFinalPos(frameTime/2);
+    triangulatedBalls.push_back(new_ball)
+    //treats pair[0] as left ball and pair[1] as right ball
+  }
 
-  LAXBall.nextCoords(P.at<double>(0,0)/P.at<double>(3,0),
-                     P.at<double>(1,0)/P.at<double>(3,0),
-                     -P.at<double>(2,0)/P.at<double>(3,0));
-
-  LAXBall.calcFinalPos(frameTime/2, LAXBot);
   Roboteq.calcCounts(LAXBot);
   //Roboteq.sendAngles();
 }
@@ -96,13 +104,14 @@ class MainEvent : public ParallelLoopBody {
     virtual void operator ()(const Range& range) const {
       for (int r = range.start; r < range.end; r++) {
         switch (r) {
-          case 0: ballCoordL = GetCooridnates(p_captureL, p_timerL);
+          case 0: ballCoordL = GetCooridnates(p_captureL, p_timerL); //change this
             break;
-          case 1: ballCoordR = GetCooridnates(p_captureR, p_timerR);
+          case 1: ballCoordR = GetCooridnates(p_captureR, p_timerR); //change this
             break;
           case 2:
             if (p_captureL.ballFound && p_captureL.ballFound) {
               // TODO: Write function here to match the balls in the ballCoordL & ballCoordR and put them into vector of pairs
+              //sorting algorithm in http://www.cplusplus.com/reference/algorithm/?kw=algorithm
               MoveRobot();
             }
             else {

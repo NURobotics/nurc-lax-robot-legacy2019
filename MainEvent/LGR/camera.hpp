@@ -62,17 +62,13 @@ namespace LGR {
 
     bool ballFound = false;
     bool useHSV = false;
-    double ballBox.x;
-    double ballBox.y;
-    double ballBox.w;
-    double ballBox.h:
 
     double ReadFrame(TickMeter& t);
     void FrameToHSV();
     void GetThreshold(HSVvalues values);
     Mat FindballPositions();
     Mat findBallHSV();
-    Mat findBallML();
+    vector <Mat> findBallML();
     Mat trackBall();
 
     void drawObject();
@@ -93,7 +89,6 @@ namespace LGR {
 
 
     //Kuba put this stuff here
-    static Rect2d ballBox;
     Ptr<Tracker> tracker = TrackerKCF::create(); //need to research this tracker_algorithm
   };
 
@@ -214,20 +209,23 @@ namespace LGR {
     return ballCoord;
   }
 
-  Mat Camera::findBallML() {
-    Mat ballCoord(1, 1, CV_64FC2);
-
+  vector <Mat> Camera::findBallML() {
+    vector<Mat> ballCoords;
   	result_vec = detector->detect(currFrame, CONF_THRESHOLD);
     result_vec = detector->tracking_id(result_vec); //this is important for updating the boundingbox
 
     if ((ballFound = result_vec.size() > 0)) {
-      ballBox = result_vec[0];
-      ballCoord.at<Vec2d>(0,0)[0] = ballBox.x;
-      ballCoord.at<Vec2d>(0,0)[1] = ballBox.y;
+      for (auto result: result_vec)
+      {
+        Mat ballCoord(1, 1, CV_64FC2);
+        ballCoord.at<Vec2d>(0,0)[0] = result.x;
+        ballCoord.at<Vec2d>(0,0)[1] = result.y;
+        ballCoords.push_back(ballCoord);
+      }
     }
 
-    // TODO: Change ballCoord to a vector;
-    return ballCoord; //ball's coordinates
+    // COMPLETED: Change ballCoord to a vector;
+    return ballCoords; //ball's coordinates
   }
 
   // TO DO if needed
@@ -235,14 +233,14 @@ namespace LGR {
     tracker->update(frame,ballBox);
   }
 
-  Mat Camera::FindballPositions() {
-    Mat returnMe;
+  vector <Mat> Camera::FindballPositions() {
+    vector<Mat> returnMe;
     if (ballFound) {
       returnMe = trackBall();
     }
     else {
       if (useHSV) {
-        returnMe =  findBallHSV();
+        returnMe.push_back(findBallHSV());
       }
       else{
         returnMe = findBallML();
@@ -256,28 +254,29 @@ namespace LGR {
 
   void Camera::drawObject() {
     if (ballFound) {
-      if (useHSV)
-        circle(currFrame, Point(ballBox.x, ballBox.y), 20, Scalar(0, 255, 0), 2);
-      if (ballBox.y - 25 > 0)
-        line(currFrame,  Point(ballBox.x, ballBox.y), Point(ballBox.x, ballBox.y-25), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x, 0), Scalar(0, 255, 0), 2);
-      if (ballBox.y + 25 < FRAME_HEIGHT)
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x, ballBox.y+25), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x,  FRAME_HEIGHT), Scalar(0, 255, 0), 2);
-      if (ballBox.x - 25 > 0)
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x-25, ballBox.y), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(0, ballBox.y), Scalar(0, 255, 0), 2);
-      if (ballBox.x + 25 < FRAME_WIDTH)
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x+25, ballBox.y), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(FRAME_WIDTH, ballBox.y), Scalar(0, 255, 0), 2);
-
-      if (useHSV)
-        putText(currFrame, to_string(ballBox.x) + ", " + to_string(ballBox.y), Point(ballBox.x, ballBox.y+30), 1, 1, Scalar(0, 255, 0), 2);
-    }
+      for (auto ballBox: result_vec){
+        if (useHSV)
+          circle(currFrame, Point(ballBox.x, ballBox.y), 20, Scalar(0, 255, 0), 2);
+        if (ballBox.y - 25 > 0)
+          line(currFrame,  Point(ballBox.x, ballBox.y), Point(ballBox.x, ballBox.y-25), Scalar(0, 255, 0), 2);
+        else
+          line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x, 0), Scalar(0, 255, 0), 2);
+        if (ballBox.y + 25 < FRAME_HEIGHT)
+          line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x, ballBox.y+25), Scalar(0, 255, 0), 2);
+        else
+          line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x,  FRAME_HEIGHT), Scalar(0, 255, 0), 2);
+        if (ballBox.x - 25 > 0)
+          line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x-25, ballBox.y), Scalar(0, 255, 0), 2);
+        else
+          line(currFrame, Point(ballBox.x, ballBox.y), Point(0, ballBox.y), Scalar(0, 255, 0), 2);
+        if (ballBox.x + 25 < FRAME_WIDTH)
+          line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x+25, ballBox.y), Scalar(0, 255, 0), 2);
+        else
+          line(currFrame, Point(ballBox.x, ballBox.y), Point(FRAME_WIDTH, ballBox.y), Scalar(0, 255, 0), 2);
+        if (useHSV)
+          putText(currFrame, to_string(ballBox.x) + ", " + to_string(ballBox.y), Point(ballBox.x, ballBox.y+30), 1, 1, Scalar(0, 255, 0), 2);
+        }
+      }
 
     if (!useHSV) {
       for (auto &i : result_vec) {
