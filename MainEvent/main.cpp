@@ -127,13 +127,12 @@ void matchingMethod(){
   }
 
   while (!correctedR.empty()){
-    Mat rball = correctedR.top();
-    while (true){
-      if (correctedL.empty()) break;
-      Mat ball = correctedL.top();
+    Mat rball = correctedR.pop();
+    while (!correctedL.empty()){
+      Mat lball = correctedL.top();
 
-      if (abs(rball.Y - ball.Y) < marginOfError){
-        Mat lball = correctedL.pop();
+      if (abs(rball.Y - lball.Y) < marginOfError){
+        lball = correctedL.pop();
         pair<Mat,Mat> newPair;
         newPair.first = lball;
         newPair.second = rball;
@@ -141,7 +140,7 @@ void matchingMethod(){
         break;
       }
       //rball.Y > ball.Y means that ball.Y wont fit with any rball
-      else if(rball.Y > ball.Y) correctL.pop();
+      else if(rball.Y > lball.Y) correctedL.pop();
       //if rball.Y < ball.Y means that rball wont fit with any lball
       else break;
     }
