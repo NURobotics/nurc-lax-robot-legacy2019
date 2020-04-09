@@ -228,7 +228,6 @@ namespace LGR {
     return ballCoords; //ball's coordinates
   }
 
-  // TO DO if needed
   Mat Camera::trackBall() {
     tracker->update(frame,ballBox);
   }
