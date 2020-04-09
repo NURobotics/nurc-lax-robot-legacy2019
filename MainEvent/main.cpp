@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <stack>
 #include <opencv2/core.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -42,7 +43,8 @@ vector<Ball> triangulatedBalls;
 //these are the bounds of the camera visions.
 const double leftBound;
 const double rightBound;
-
+//margin of error for Y axis
+const int marginOfError;
 
 double frameTime = 0;
 
@@ -106,42 +108,42 @@ bool sortingMethod (Mat& a, Mat& b){
 }
 
 void matchingMethod(){
-  // DONE: Write function here to match the balls in the ballCoordL & ballCoordR and put them into vector of pair
-  //sorting here is inefficient(not like it really matters that much here), makes more sense to sort after balls out of bounds removed
-  //sort(ballCoordR.begin(), ballCoordR.end(), sortingMethod());
-  //sort(ballCoordL.begin(), ballCoordL.end(), sortingMethod());
+  //so these are sorted right now
+  sort(ballCoordR.begin(), ballCoordR.end(), sortingMethod());
+  sort(ballCoordL.begin(), ballCoordL.end(), sortingMethod());
 
-  vector<Mat> correctedR;
-  vector<Mat> correctedL;
+  stack<Mat> correctedR;
+  stack<Mat> correctedL;
 
-  for (auto lball: ballCoordL){
-    if (lball.X > leftBound){
-      correctedL.push_back(lball);
-    }
-  }
   for (auto rball: ballCoordR){
     if (rball.X < rightBound){
-      correctedR.push_back(rball);
+      correctedR.push(rball);
+    }
+  }
+  for (auto lball: ballCoordL){
+    if (lball.X > leftBound){
+      correctedL.push(lball);
     }
   }
 
-  sort(correctedR.begin(), correctedR.end(), sortingMethod());
-  sort(correctedL.begin(), correctedL.end(), sortingMethod());
-  //balls are now sorted by their Y values
-  //how much does sorting even do here?
+  while (!correctedR.empty()){
+    Mat rball = correctedR.top();
+    while (true){
+      if (correctedL.empty()) break;
+      Mat ball = correctedL.top();
 
-  for (auto rball: correctedR){
-    for (auto lball: correctedL){
-      if (rball.Y == lball.Y){
-        //TODO (Kuba): Is there a method for judging whether the x values are close enough?
-        //TODO (Kuba): This assumes that the cameras are at the exact same height, which seems unlikely. We should do some sort of bounds/error correction here
-        pair<Mat, Mat> newPair;
+      if (abs(rball.Y - ball.Y) < marginOfError){
+        Mat lball = correctedL.pop();
+        pair<Mat,Mat> newPair;
         newPair.first = lball;
         newPair.second = rball;
         pairedBalls.push_back(newPair);
-        //break; Assuming we can guaruntee there's only one match, break would optimize performance
-        //TODO (Kuba): Is there a way to do this ^^^. Not a main concern right now
+        break;
       }
+      //rball.Y > ball.Y means that ball.Y wont fit with any rball
+      else if(rball.Y > ball.Y) correctL.pop();
+      //if rball.Y < ball.Y means that rball wont fit with any lball
+      else break;
     }
   }
 }
