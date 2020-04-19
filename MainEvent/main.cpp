@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <stack>
 #include <opencv2/core.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -28,15 +29,22 @@ double projRData[] = {1051.57, 0, 630.838, 190.334, 0, 1052.83, 341.993, 0, 0, 0
 const Mat projL(3, 4, CV_64F, projLData);
 const Mat projR(3, 4, CV_64F, projRData);
 
-// TODO: Change ballCoord to a vector
-// TODO: Create a ballCoord vector that will holds the pairs of matching left and right balls
+// DONE: Change ballCoord to a vector
+// DONE: Create a ballCoord vector that will holds the pairs of matching left and right balls
 vector<Mat> ballCoordL; //balls recognized from left camera
 vector<Mat> ballCoordR; //balls recognized from right camera
 vector<pair<Mat,Mat>> pairedBalls;
-vector<Ball> triangulatedBalls
+vector<Ball> triangulatedBalls;
 //holds balls after sorted
 // ancillary code Mat ballCoordL(1,1,CV_64FC2);
 // ancillary code Mat ballCoordR(1,1,CV_64FC2);
+
+//TODO (Kuba): Find the values
+//these are the bounds of the camera visions.
+const double leftBound;
+const double rightBound;
+//margin of error for Y axis
+const int marginOfError;
 
 double frameTime = 0;
 
@@ -77,7 +85,8 @@ Mat GetCooridnates(Camera& capture, TickMeter& t) {
 }
 
 void MoveRobot() {
-  // TODO: Line 77, 79, and 83 into a function over multiple balls in the vector of pairs, then check which one will arrive soonest and send that into calcCounts
+  // DONE: Line 77, 79, and 83 into a function over multiple balls in the vector of pairs, then check which one will arrive soonest and send that into calcCounts
+  //TODO (Kuba): Talk to Albert about how this functions. I think we forgot to add the 'choosing closest ball part'
   for (auto ballPair : pairedBalls){
     Ball new_ball = Ball();
     Mat P(4,1,CV_64F);
@@ -92,6 +101,50 @@ void MoveRobot() {
 
   Roboteq.calcCounts(LAXBot);
   //Roboteq.sendAngles();
+}
+
+bool sortingMethod (Mat& a, Mat& b){
+    return a.Y > b.Y;
+}
+
+void matchingMethod(){
+  //so these are sorted right now
+  sort(ballCoordR.begin(), ballCoordR.end(), sortingMethod());
+  sort(ballCoordL.begin(), ballCoordL.end(), sortingMethod());
+
+  stack<Mat> correctedR;
+  stack<Mat> correctedL;
+
+  for (auto rball: ballCoordR){
+    if (rball.X < rightBound){
+      correctedR.push(rball);
+    }
+  }
+  for (auto lball: ballCoordL){
+    if (lball.X > leftBound){
+      correctedL.push(lball);
+    }
+  }
+
+  while (!correctedR.empty()){
+    Mat rball = correctedR.pop();
+    while (!correctedL.empty()){
+      Mat lball = correctedL.top();
+
+      if (abs(rball.Y - lball.Y) < marginOfError){
+        lball = correctedL.pop();
+        pair<Mat,Mat> newPair;
+        newPair.first = lball;
+        newPair.second = rball;
+        pairedBalls.push_back(newPair);
+        break;
+      }
+      //rball.Y > ball.Y means that ball.Y wont fit with any rball
+      else if(rball.Y > lball.Y) correctedL.pop();
+      //if rball.Y < ball.Y means that rball wont fit with any lball
+      else break;
+    }
+  }
 }
 
 class MainEvent : public ParallelLoopBody {
@@ -110,8 +163,7 @@ class MainEvent : public ParallelLoopBody {
             break;
           case 2:
             if (p_captureL.ballFound && p_captureL.ballFound) {
-              // TODO: Write function here to match the balls in the ballCoordL & ballCoordR and put them into vector of pairs
-              //sorting algorithm in http://www.cplusplus.com/reference/algorithm/?kw=algorithm
+              matchingMethod();
               MoveRobot();
             }
             else {
