@@ -14,9 +14,8 @@ using namespace std;
 
 // For OpenCV DNN
 #define NMS_THRESHOLD 0.4 // Non-maximum suppression threshold
-#define NET_SIZE 608 // Width and height of input image to network
+#define NET_SIZE 608      // Width and height of input image to network
 
-
-//for ball location
+// for ball location
 #define EXP_AVG_WT 0.25
 #define SLOW_TOL 0.5

@@ -1,17 +1,17 @@
-#include <string>
 #include <iostream>
-#include <stack>
+#include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/calib3d.hpp>
+#include <stack>
+#include <string>
 
-#include "LGR/axis.hpp"
 #include "LGR/HSV.hpp"
-#include "LGR/camera.hpp"
-#include "LGR/robot.hpp"
-#include "LGR/mController.hpp"
+#include "LGR/axis.hpp"
 #include "LGR/ball.hpp"
+#include "LGR/camera.hpp"
+#include "LGR/mController.hpp"
+#include "LGR/robot.hpp"
 
 using namespace cv;
 using namespace cv::cuda;
@@ -23,33 +23,36 @@ Ball LAXBall = Ball();
 Robot LAXBot = Robot();
 mController Roboteq = mController();
 
-double projLData[] = {1072.6, 0, 680.724, -194.14, 0, 1073.69, 383.223, 0, 0, 0, 1, 0};
-double projRData[] = {1051.57, 0, 630.838, 190.334, 0, 1052.83, 341.993, 0, 0, 0, 1, 0};
+double projLData[] = {1072.6,  0, 680.724, -194.14, 0, 1073.69,
+                      383.223, 0, 0,       0,       1, 0};
+double projRData[] = {1051.57, 0, 630.838, 190.334, 0, 1052.83,
+                      341.993, 0, 0,       0,       1, 0};
 
 const Mat projL(3, 4, CV_64F, projLData);
 const Mat projR(3, 4, CV_64F, projRData);
 
 // DONE: Change ballCoord to a vector
-// DONE: Create a ballCoord vector that will holds the pairs of matching left and right balls
-vector<Mat> ballCoordL; //balls recognized from left camera
-vector<Mat> ballCoordR; //balls recognized from right camera
-vector<pair<Mat,Mat>> pairedBalls;
+// DONE: Create a ballCoord vector that will holds the pairs of matching left
+// and right balls
+vector<Mat> ballCoordL; // balls recognized from left camera
+vector<Mat> ballCoordR; // balls recognized from right camera
+vector<pair<Mat, Mat>> pairedBalls;
 vector<Ball> triangulatedBalls;
-//holds balls after sorted
+// holds balls after sorted
 // ancillary code Mat ballCoordL(1,1,CV_64FC2);
 // ancillary code Mat ballCoordR(1,1,CV_64FC2);
 
-//TODO (Kuba): Find the values
-//these are the bounds of the camera visions.
+// TODO (Kuba): Find the values
+// these are the bounds of the camera visions.
 const double leftBound;
 const double rightBound;
-//margin of error for Y axis
+// margin of error for Y axis
 const int marginOfError;
 
 double frameTime = 0;
 
-void on_trackbar(int, void*) {
-  //HSV.calcValues();
+void on_trackbar(int, void *) {
+  // HSV.calcValues();
 }
 
 void createTrackbars() {
@@ -64,15 +67,15 @@ void createTrackbars() {
   sprintf(TrackbarName, "VMin");
   sprintf(TrackbarName, "VMax");
 
-  createTrackbar( "HMin", trackbarWindowName, &HSV.HMin, HSV.HMax, on_trackbar );
-  createTrackbar( "HMax", trackbarWindowName, &HSV.HMax, HSV.HMax, on_trackbar );
-  createTrackbar( "SMin", trackbarWindowName, &HSV.SMin, HSV.SMax, on_trackbar );
-  createTrackbar( "SMax", trackbarWindowName, &HSV.SMax, HSV.SMax, on_trackbar );
-  createTrackbar( "VMin", trackbarWindowName, &HSV.VMin, HSV.VMax, on_trackbar );
-  createTrackbar( "VMax", trackbarWindowName, &HSV.VMax, HSV.VMax, on_trackbar );
+  createTrackbar("HMin", trackbarWindowName, &HSV.HMin, HSV.HMax, on_trackbar);
+  createTrackbar("HMax", trackbarWindowName, &HSV.HMax, HSV.HMax, on_trackbar);
+  createTrackbar("SMin", trackbarWindowName, &HSV.SMin, HSV.SMax, on_trackbar);
+  createTrackbar("SMax", trackbarWindowName, &HSV.SMax, HSV.SMax, on_trackbar);
+  createTrackbar("VMin", trackbarWindowName, &HSV.VMin, HSV.VMax, on_trackbar);
+  createTrackbar("VMax", trackbarWindowName, &HSV.VMax, HSV.VMax, on_trackbar);
 }
 
-Mat GetCooridnates(Camera& capture, TickMeter& t) {
+Mat GetCooridnates(Camera &capture, TickMeter &t) {
 
   frameTime += capture.ReadFrame(t);
 
@@ -85,117 +88,122 @@ Mat GetCooridnates(Camera& capture, TickMeter& t) {
 }
 
 void MoveRobot() {
-  // DONE: Line 77, 79, and 83 into a function over multiple balls in the vector of pairs, then check which one will arrive soonest and send that into calcCounts
-  //TODO (Kuba): Talk to Albert about how this functions. I think we forgot to add the 'choosing closest ball part'
+  // DONE: Line 77, 79, and 83 into a function over multiple balls in the vector
+  // of pairs, then check which one will arrive soonest and send that into
+  // calcCounts
+  // TODO (Kuba): Talk to Albert about how this functions. I think we forgot to
+  // add the 'choosing closest ball part'
   for (auto ballPair : pairedBalls) {
     Ball new_ball = Ball();
-    Mat P(4,1,CV_64F);
-    Mat xyz(3,1,CV_64F);
+    Mat P(4, 1, CV_64F);
+    Mat xyz(3, 1, CV_64F);
 
     triangulatePoints(projL, projR, ballPair.first, ballCoord.second, P);
     convertPointsFromHomogeneous(P, xyz);
 
-    new_ball.nextCoords(P.at<double>(0,0), P.at<double>(1,0), P.at<double>(2,0));
-    new_ball.calcFinalPos(frameTime/2);
+    new_ball.nextCoords(P.at<double>(0, 0), P.at<double>(1, 0),
+                        P.at<double>(2, 0));
+    new_ball.calcFinalPos(frameTime / 2);
     triangulatedBalls.push_back(new_ball)
-    //treats pair[0] as left ball and pair[1] as right ball
+    // treats pair[0] as left ball and pair[1] as right ball
   }
 
   Roboteq.calcCounts(LAXBot);
-  //Roboteq.sendAngles();
+  // Roboteq.sendAngles();
 }
 
-bool sortingMethod (Mat& a, Mat& b){
-    return a.y > b.y;
-}
+bool sortingMethod(Mat &a, Mat &b) { return a.y > b.y; }
 
-void matchingMethod(){
-  //so these are sorted right now
+void matchingMethod() {
+  // so these are sorted right now
   sort(ballCoordR.begin(), ballCoordR.end(), sortingMethod());
   sort(ballCoordL.begin(), ballCoordL.end(), sortingMethod());
 
   stack<Mat> correctedR;
   stack<Mat> correctedL;
 
-  for (auto rball: ballCoordR){
-    if (rball.X < rightBound){
+  for (auto rball : ballCoordR) {
+    if (rball.X < rightBound) {
       correctedR.push(rball);
     }
   }
-  for (auto lball: ballCoordL){
-    if (lball.X > leftBound){
+  for (auto lball : ballCoordL) {
+    if (lball.X > leftBound) {
       correctedL.push(lball);
     }
   }
 
-  while (!correctedR.empty()){
+  while (!correctedR.empty()) {
     Mat rball = correctedR.pop();
-    while (!correctedL.empty()){
+    while (!correctedL.empty()) {
       Mat lball = correctedL.top();
 
-      if (abs(rball.y - lball.y) < marginOfError){
+      if (abs(rball.y - lball.y) < marginOfError) {
         lball = correctedL.pop();
-        pair<Mat,Mat> newPair;
+        pair<Mat, Mat> newPair;
         newPair.first = lball;
         newPair.second = rball;
         pairedBalls.push_back(newPair);
         break;
       }
-      //rball.y > ball.y means that ball.y wont fit with any rball
-      else if(rball.y > lball.y) correctedL.pop();
-      //if rball.y < ball.y means that rball wont fit with any lball
-      else break;
+      // rball.y > ball.y means that ball.y wont fit with any rball
+      else if (rball.y > lball.y)
+        correctedL.pop();
+      // if rball.y < ball.y means that rball wont fit with any lball
+      else
+        break;
     }
   }
 }
 
 class MainEvent : public ParallelLoopBody {
-  public:
-    MainEvent(Camera& captureL, TickMeter& timerL,
-              Camera& captureR, TickMeter& timerR)
-                : p_captureL(captureL), p_timerL(timerL),
-                  p_captureR(captureR), p_timerR(timerR) {}
+public:
+  MainEvent(Camera &captureL, TickMeter &timerL, Camera &captureR,
+            TickMeter &timerR)
+      : p_captureL(captureL), p_timerL(timerL), p_captureR(captureR),
+        p_timerR(timerR) {}
 
-    virtual void operator ()(const Range& range) const {
-      for (int r = range.start; r < range.end; r++) {
-        switch (r) {
-          case 0: ballCoordL = GetCooridnates(p_captureL, p_timerL); //change this
-            break;
-          case 1: ballCoordR = GetCooridnates(p_captureR, p_timerR); //change this
-            break;
-          case 2:
-            if (p_captureL.ballFound && p_captureL.ballFound) {
-              matchingMethod();
-              MoveRobot();
-            }
-            else {
-              LAXBall.reset();
-            }
-            break;
+  virtual void operator()(const Range &range) const {
+    for (int r = range.start; r < range.end; r++) {
+      switch (r) {
+      case 0:
+        ballCoordL = GetCooridnates(p_captureL, p_timerL); // change this
+        break;
+      case 1:
+        ballCoordR = GetCooridnates(p_captureR, p_timerR); // change this
+        break;
+      case 2:
+        if (p_captureL.ballFound && p_captureL.ballFound) {
+          matchingMethod();
+          MoveRobot();
+        } else {
+          LAXBall.reset();
         }
+        break;
       }
     }
+  }
 
-    MainEvent& operator=(const MainEvent &) {
-        return *this;
-    };
+  MainEvent &operator=(const MainEvent &) { return *this; };
 
-  private:
-    Camera& p_captureL;
-    TickMeter& p_timerL;
-    Camera& p_captureR;
-    TickMeter& p_timerR;
+private:
+  Camera &p_captureL;
+  TickMeter &p_timerL;
+  Camera &p_captureR;
+  TickMeter &p_timerR;
 };
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   double KLData[] = {1072.6, 0, 680.724, 0, 1073.69, 383.223, 0, 0, 1};
   double KRData[] = {1051.57, 0, 630.838, 0, 1052.83, 341.993, 0, 0, 1};
 
   const Mat KL(3, 3, CV_64F, KLData);
   const Mat KR(3, 3, CV_64F, KRData);
 
-  double distortion_coeffsLData[] = {-0.407242, 0.163507, -0.000309831, 0.00123473, 0};
-  double distortion_coeffsRData[] = {-0.395033, 0.15755, 6.48855e-005, 0.000488116, 0};
+  double distortion_coeffsLData[] = {-0.407242, 0.163507, -0.000309831,
+                                     0.00123473, 0};
+  double distortion_coeffsRData[] = {-0.395033, 0.15755, 6.48855e-005,
+                                     0.000488116, 0};
 
   const Mat distortion_coeffsL(5, 1, CV_64F, distortion_coeffsLData);
   const Mat distortion_coeffsR(5, 1, CV_64F, distortion_coeffsRData);
@@ -214,14 +222,15 @@ int main(int argc, char* argv[]) {
 
   MainEvent mainEvent(captureL, timerL, captureR, timerR);
 
-  //Roboteq.configure();
+  // Roboteq.configure();
   timerL.start();
   timerR.start();
 
   double frameTimeTotal = 0;
   int iterations = 0;
 
-  VideoWriter outVid("Result0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, Size(FRAME_WIDTH, FRAME_HEIGHT));
+  VideoWriter outVid("Result0.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 30,
+                     Size(FRAME_WIDTH, FRAME_HEIGHT));
 
   for (;;) {
     frameTime = 0;
@@ -249,15 +258,16 @@ int main(int argc, char* argv[]) {
     frameTimeTotal = frameTimeTotal + frameTime;
     iterations++;
 
-    cout << "FPS: " << 1/((frameTimeTotal/iterations)/2)<< endl;
+    cout << "FPS: " << 1 / ((frameTimeTotal / iterations) / 2) << endl;
     for (auto &i : captureL.result_vec) {
       cout << "obj_id = " << i.obj_id << ",  x = " << i.x << ", y = " << i.y
-        << ", w = " << i.w << ", h = " << i.h << ", track_id = " << (i.track_id ? i.track_id : -1)
-        << std::setprecision(3) << ", prob = " << i.prob << endl;
+           << ", w = " << i.w << ", h = " << i.h
+           << ", track_id = " << (i.track_id ? i.track_id : -1)
+           << std::setprecision(3) << ", prob = " << i.prob << endl;
     }
 
-    char c = (char) waitKey( 1 );
-    if( c == 'p' )
+    char c = (char)waitKey(1);
+    if (c == 'p')
       showWindows = !showWindows;
   }
 
