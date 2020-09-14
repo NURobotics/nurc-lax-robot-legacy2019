@@ -106,7 +106,7 @@ void MoveRobot() {
 }
 
 bool sortingMethod (Mat& a, Mat& b){
-    return a.Y > b.Y;
+    return a.y > b.y;
 }
 
 void matchingMethod(){
@@ -133,7 +133,7 @@ void matchingMethod(){
     while (!correctedL.empty()){
       Mat lball = correctedL.top();
 
-      if (abs(rball.Y - lball.Y) < marginOfError){
+      if (abs(rball.y - lball.y) < marginOfError){
         lball = correctedL.pop();
         pair<Mat,Mat> newPair;
         newPair.first = lball;
@@ -141,9 +141,9 @@ void matchingMethod(){
         pairedBalls.push_back(newPair);
         break;
       }
-      //rball.Y > ball.Y means that ball.Y wont fit with any rball
-      else if(rball.Y > lball.Y) correctedL.pop();
-      //if rball.Y < ball.Y means that rball wont fit with any lball
+      //rball.y > ball.y means that ball.y wont fit with any rball
+      else if(rball.y > lball.y) correctedL.pop();
+      //if rball.y < ball.y means that rball wont fit with any lball
       else break;
     }
   }
