@@ -10,23 +10,23 @@ using namespace std;
 
 namespace LGR {
 struct mController {
-  const int innerIndex = 1;
-  const int outerIndex = 2;
+  const int innerMotorIndex = 1;
+  const int outerMotorIndex = 2;
 
-  const int innerRPM = 747;
-  const int outerRPM = 747;
+  const int innerMotorRPM = 747;
+  const int outerMotorRPM = 747;
 
   const int innerStepCount = 2000;
   const int outerStepCount = 2000;
 
   const string port = "\\\\.\\com3";
 
-  RoboteqDevice RD;
+  RoboteqDevice roboteq;
 
-  int innerCount;
-  int outerCount;
+  int innerMotorCount;
+  int outerMotorCount;
 
-  void calcCounts(Robot &r);
+  void calcCounts(Robot &robot);
   void sendAngles();
   void configure();
 
@@ -34,38 +34,42 @@ struct mController {
   void reset();
 };
 
-void mController::calcCounts(Robot &r) {
-  double hyp = sqrt(r.DestX * r.DestX + r.DestY * r.DestX);
-  if (hyp > r.maxArmLen)
-    hyp = r.maxArmLen;
-  if (hyp < r.minArmLen)
-    hyp = r.minArmLen;
+void mController::calcCounts(Robot &robot) {
+  double hypotenuse = sqrt(robot.DestinationX * robot.DestinationX +
+                           robot.DestinationY * robot.DestinationX);
+  if (hypotenuse > robot.maxArmLen)
+    hypotenuse = robot.maxArmLen;
+  if (hypotenuse < robot.minArmLen)
+    hypotenuse = robot.minArmLen;
 
-  r.Motor2Angle = acos((hyp * hyp - r.squareSumArmLen) / (r.outInArm2));
-  r.Motor1Angle = atan2(r.DestY, r.DestX) -
-                  atan((r.outerArmLen * sin(r.Motor2Angle)) /
-                       (r.innerArmLen + r.outerArmLen * cos(r.Motor2Angle)));
-  r.Motor2Angle += r.Motor1Angle;
+  robot.Motor2Angle = acos((hypotenuse * hypotenuse - robot.squareSumArmLen) /
+                           (robot.outInArm2));
+  robot.Motor1Angle =
+      atan2(robot.DestinationY, robot.DestinationX) -
+      atan((robot.outerArmLen * sin(robot.Motor2Angle)) /
+           (robot.innerArmLen + robot.outerArmLen * cos(robot.Motor2Angle)));
+  robot.Motor2Angle += robot.Motor1Angle;
 
-  if (r.DestX < 0) {
-    r.Motor1Angle += CV_PI;
-    r.Motor2Angle += CV_PI;
+  if (robot.DestinationX < 0) {
+    robot.Motor1Angle += CV_PI;
+    robot.Motor2Angle += CV_PI;
   }
 
-  innerCount = ((r.DestX > 0 ? CV_PI : 0) + atan(r.DestY / r.DestX)) /
-               (2 * CV_PI) * innerStepCount;
-  outerCount = r.Motor2Angle / (2 * CV_PI) * outerStepCount;
+  innerMotorCount = ((robot.DestinationX > 0 ? CV_PI : 0) +
+                     atan(robot.DestinationY / robot.DestinationX)) /
+                    (2 * CV_PI) * innerStepCount;
+  outerMotorCount = robot.Motor2Angle / (2 * CV_PI) * outerStepCount;
 }
 
 void mController::sendAngles() {
-  RD.SetCommand(_P, innerIndex, innerCount);
-  RD.SetCommand(_P, outerIndex, outerCount);
+  roboteq.SetCommand(_P, innerMotorIndex, innerMotorCount);
+  roboteq.SetCommand(_P, outerMotorIndex, outerMotorCount);
 }
 
 void mController::configure() {
   int status;
   cout << "Connecting to Roboteq...";
-  if ((status = RD.Connect(port)) != RQ_SUCCESS) {
+  if ((status = roboteq.Connect(port)) != RQ_SUCCESS) {
     cout << "Error connecting to device --> " << status << "." << endl;
     return;
   } else {
@@ -74,12 +78,12 @@ void mController::configure() {
 }
 
 void mController::reset() {
-  innerCount = 0;
-  outerCount = 0;
+  innerMotorCount = 0;
+  outerMotorCount = 0;
 }
 
 void mController::print() {
-  cout << "Inner Count:  " << innerCount << ", Outer Count: " << innerCount
-       << endl;
+  cout << "Inner Count:  " << innerMotorCount
+       << ", Outer Count: " << innerMotorCount << endl;
 }
 } // namespace LGR

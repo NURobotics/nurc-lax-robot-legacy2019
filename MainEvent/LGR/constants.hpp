@@ -17,5 +17,5 @@ using namespace std;
 #define NET_SIZE 608      // Width and height of input image to network
 
 // for ball location
-#define EXP_AVG_WT 0.25
-#define SLOW_TOL 0.5
+#define EXP_AVG_WEIGHT 0.25
+#define MIN_SPEED 0.5

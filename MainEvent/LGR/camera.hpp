@@ -34,8 +34,8 @@ struct Camera {
   int feed;
 
   VideoCapture cap;
-  Mat K;
-  Mat distortion_coeffs;
+  Mat cameraMatrix;
+  Mat distortionCoeffs;
 
   Mat currFrame; // current frame you're looking at (current image) (image)
   GpuMat currFrameGPU;
@@ -60,7 +60,7 @@ struct Camera {
   bool ballFound = false;
   bool useHSV = false;
 
-  double ReadFrame(TickMeter &t);
+  double ReadFrame(TickMeter &time);
   void FrameToHSV();
   void GetThreshold(HSVvalues values);
   Mat FindballPositions();
@@ -76,7 +76,7 @@ struct Camera {
 
   void print();
 
-  Camera(string n, int f, Mat k, Mat d);
+  Camera(string n, int f, Mat c, Mat d);
 
   const Mat erodeElement = getStructuringElement(MORPH_RECT, Size(6, 6));
   const Mat dilateElement = getStructuringElement(MORPH_RECT, Size(16, 16));
@@ -91,38 +91,33 @@ struct Camera {
       TrackerKCF::create(); // need to research this tracker_algorithm
 };
 
-Camera::Camera(string n, int f, Mat k, Mat d) {
-  name = n;
-  feed = f;
-  K = k;
-  distortion_coeffs = d;
+Camera::Camera(string n, int f, Mat c, Mat d)
+    : name(n), feed(f), cameraMatrix(c), distortionCoeffs(d) {
+  // cap.open("../VID_0.avi");
+  cap.open("/dev/video" + to_string(feed), CAP_V4L2);
 
-  cap.open("../VID_0.avi");
-  // cap.open("/dev/video" + to_string(f), CAP_V4L2);
-
-  // cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
-  // cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-  // cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+  cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
+  cap.set(CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+  cap.set(CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
   // classes.push_back("laxball");
   // net = readNetFromDarknet(modelConfig, modelWeights);
   // net.setPreferableBackend(DNN_BACKEND_OPENCV);
   // net.setPreferableTarget(DNN_TARGET_OPENCL);
 
-  vector<int> outLayers = net.getUnconnectedOutLayers();
+  // vector<int> outLayers = net.getUnconnectedOutLayers();
   // vector<String> layersNames = net.getLayerNames();
 
   // outputLayer = layersNames[outLayers[0]];
 }
 
-double Camera::ReadFrame(TickMeter &t) {
-  t.stop();
-  double secs = t.getTimeSec();
-  t.reset();
-  t.start();
-  cout << secs << endl;
-  cap.read(currFrame);
+double Camera::ReadFrame(TickMeter &time) {
+  time.stop();
+  double secs = time.getTimeSec();
+  time.reset();
+  time.start();
 
+  cap.read(currFrame);
   return secs;
 }
 
@@ -209,7 +204,7 @@ Mat Camera::findBallHSV() {
   ballCoord.at<Vec2d>(0, 0)[1] = ballBox.y;
 
   if (ballFound) {
-    undistortPoints(ballCoord, undistoredCoord, K, distortion_coeffs);
+    undistortPoints(ballCoord, undistoredCoord, cameraMatrix, distortionCoeffs);
   }
 
   return ballCoord;
@@ -237,20 +232,20 @@ vector<Mat> Camera::findBallML() {
 Mat Camera::trackBall() { tracker->update(frame, ballBox); }
 
 vector<Mat> Camera::FindballPositions() {
-  vector<Mat> returnMe;
+  vector<Mat> ballCoords;
   if (ballFound) {
-    returnMe = trackBall();
+    ballCoords = trackBall();
   } else {
     if (useHSV) {
-      returnMe.push_back(findBallHSV());
+      ballCoords.push_back(findBallHSV());
     } else {
-      returnMe = findBallML();
+      ballCoords = findBallML();
     }
     if (ballFound) {
       tracker->init(currFrame, ballBox) // initiates the ball tracker
     }
   }
-  return returnMe;
+  return ballCoords;
 }
 
 void Camera::drawObject() {
@@ -308,9 +303,9 @@ void Camera::drawObject() {
 void Camera::showOriginal() { imshow(name + " Original Image", currFrame); }
 
 void Camera::showHSV() {
-  Mat f;
-  HSV.download(f);
-  imshow(name + " HSV Image", f);
+  Mat image;
+  HSV.download(image);
+  imshow(name + " HSV Image", image);
 }
 
 void Camera::showThreshold() {

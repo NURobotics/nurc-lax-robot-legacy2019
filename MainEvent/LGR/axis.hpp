@@ -8,15 +8,16 @@ namespace LGR {
 struct Axis {
   string name;
 
-  double p1;
-  double p2;
-  double p3;
+  // 2 is most recent
+  double frame0;
+  double frame1;
+  double frame2;
 
-  double pf;
-  double vel;
+  double final;
+  double velocity;
 
-  void stepTime(double newP1);
-  double calcVel(double dt);
+  void storeNewCoordinate(double newCoord);
+  double calcVelocity(double dt);
 
   void print();
   void reset();
@@ -24,26 +25,26 @@ struct Axis {
   Axis(string n) : name(n) {}
 };
 
-void Axis::stepTime(double newP1) {
-  p3 = p2;
-  p2 = p1;
-  p1 = newP1;
+void Axis::storeNewCoordinate(double newCoord) {
+  frame2 = frame1;
+  frame1 = frame0;
+  frame0 = newCoord;
 }
 
-double Axis::calcVel(double td) {
-  vel = (p2 - p1) / td;
-  return vel;
+double Axis::calcVelocity(double dt) {
+  velocity = (frame1 - frame0) / dt;
+  return velocity;
 }
 
 void Axis::reset() {
-  p3 = p1;
-  p2 = p1;
-  pf = p1;
+  frame2 = frame0;
+  frame1 = frame0;
+  final = frame0;
 
-  vel = 0;
+  velocity = 0;
 }
 
 void Axis::print() {
-  cout << name + "f: " << pf << ", " + name + " Vel: " << vel << endl;
+  cout << name + "f: " << final << ", " + name + " Vel: " << velocity << endl;
 }
 } // namespace LGR

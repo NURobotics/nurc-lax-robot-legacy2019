@@ -10,11 +10,11 @@ struct Robot {
   double Motor1Angle;
   double Motor2Angle;
 
-  double DestX;
-  double DestY;
+  double DestinationX;
+  double DestinationY;
 
-  const double Camera_dx_Camera = 0.362;
-  const double Camera_dy_Ground = .75;
+  const double CameraSeperation = 0.362;
+  const double CameraHeight = 0.75;
 
   const double innerArmLen = 0.05;
   const double outerArmLen = 0.05;
@@ -34,13 +34,14 @@ struct Robot {
 void Robot::reset() {
   Motor1Angle = 0;
   Motor2Angle = 0;
-  DestX = 0;
-  DestY = 0;
+  DestinationX = 0;
+  DestinationY = 0;
 }
 
 void Robot::print() {
   cout << "Motor Angles: 1 - " << Motor1Angle << ", 2 - " << Motor2Angle << endl
-       << "X Destination: " << DestX << ", Y Destination: " << DestY << endl;
+       << "X Destination: " << DestinationX
+       << ", Y Destination: " << DestinationY << endl;
 }
 
 void Robot::draw() {}

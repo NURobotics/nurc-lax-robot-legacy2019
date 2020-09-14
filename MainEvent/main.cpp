@@ -95,14 +95,15 @@ void MoveRobot() {
   // add the 'choosing closest ball part'
   for (auto ballPair : pairedBalls) {
     Ball new_ball = Ball();
-    Mat P(4, 1, CV_64F);
+    Mat xyzHomogeneous(4, 1, CV_64F);
     Mat xyz(3, 1, CV_64F);
 
-    triangulatePoints(projL, projR, ballPair.first, ballCoord.second, P);
-    convertPointsFromHomogeneous(P, xyz);
+    triangulatePoints(projL, projR, ballPair.first, ballCoord.second,
+                      xyzHomogeneous);
+    convertPointsFromHomogeneous(xyzHomogeneous, xyz);
 
-    new_ball.nextCoords(P.at<double>(0, 0), P.at<double>(1, 0),
-                        P.at<double>(2, 0));
+    new_ball.storeNewCoordinate(xyz.at<double>(0, 0), xyz.at<double>(1, 0),
+                                -xyz.at<double>(2, 0));
     new_ball.calcFinalPos(frameTime / 2);
     triangulatedBalls.push_back(new_ball)
     // treats pair[0] as left ball and pair[1] as right ball
@@ -164,8 +165,8 @@ public:
         p_timerR(timerR) {}
 
   virtual void operator()(const Range &range) const {
-    for (int r = range.start; r < range.end; r++) {
-      switch (r) {
+    for (int thread = range.start; thread < range.end; thread++) {
+      switch (thread) {
       case 0:
         ballCoordL = GetCooridnates(p_captureL, p_timerL); // change this
         break;
@@ -194,26 +195,27 @@ private:
 };
 
 int main(int argc, char *argv[]) {
-  double KLData[] = {1072.6, 0, 680.724, 0, 1073.69, 383.223, 0, 0, 1};
-  double KRData[] = {1051.57, 0, 630.838, 0, 1052.83, 341.993, 0, 0, 1};
+  double cameraMatrixLData[] = {1072.6,  0, 680.724, 0, 1073.69,
+                                383.223, 0, 0,       1};
+  double cameraMatrixRData[] = {1051.57, 0, 630.838, 0, 1052.83,
+                                341.993, 0, 0,       1};
 
-  const Mat KL(3, 3, CV_64F, KLData);
-  const Mat KR(3, 3, CV_64F, KRData);
+  const Mat cameraMatrixL(3, 3, CV_64F, cameraMatrixLData);
+  const Mat cameraMatrixR(3, 3, CV_64F, cameraMatrixRData);
 
-  double distortion_coeffsLData[] = {-0.407242, 0.163507, -0.000309831,
-                                     0.00123473, 0};
-  double distortion_coeffsRData[] = {-0.395033, 0.15755, 6.48855e-005,
-                                     0.000488116, 0};
+  double distortionCoeffsLData[] = {-0.407242, 0.163507, -0.000309831,
+                                    0.00123473, 0};
+  double distortionCoeffsRData[] = {-0.395033, 0.15755, 6.48855e-005,
+                                    0.000488116, 0};
 
-  const Mat distortion_coeffsL(5, 1, CV_64F, distortion_coeffsLData);
-  const Mat distortion_coeffsR(5, 1, CV_64F, distortion_coeffsRData);
+  const Mat distortionCoeffsL(5, 1, CV_64F, distortionCoeffsLData);
+  const Mat distortionCoeffsR(5, 1, CV_64F, distortionCoeffsRData);
 
-  Camera captureL = Camera("Left Cam", 0, KL, distortion_coeffsL);
-  Camera captureR = Camera("Right Cam", 2, KR, distortion_coeffsR);
+  Camera captureL = Camera("Left Cam", 0, cameraMatrixL, distortionCoeffsL);
+  Camera captureR = Camera("Right Cam", 2, cameraMatrixR, distortionCoeffsR);
 
   TickMeter timerL;
   TickMeter timerR;
-  TickMeter timerT;
 
   createTrackbars();
   bool showWindows = true;
