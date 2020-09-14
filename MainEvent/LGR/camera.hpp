@@ -36,7 +36,6 @@ namespace LGR {
     int feed;
 
     VideoCapture cap;
-    Mat Proj;
     Mat K;
     Mat distortion_coeffs;
 
@@ -79,7 +78,7 @@ namespace LGR {
 
     void print();
 
-    Camera(string n, int f, Mat p, Mat k, Mat d);
+    Camera(string n, int f, Mat k, Mat d);
 
     const Mat erodeElement = getStructuringElement(MORPH_RECT,Size(6,6));
     const Mat dilateElement = getStructuringElement(MORPH_RECT,Size(16,16));
@@ -92,10 +91,9 @@ namespace LGR {
     Ptr<Tracker> tracker = TrackerKCF::create(); //need to research this tracker_algorithm
   };
 
-  Camera::Camera(string n, int f, Mat p, Mat k, Mat d) {
+  Camera::Camera(string n, int f, Mat k, Mat d) {
     name = n;
     feed = f;
-    Proj = p;
     K = k;
     distortion_coeffs = d;
 

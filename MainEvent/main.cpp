@@ -87,13 +87,15 @@ Mat GetCooridnates(Camera& capture, TickMeter& t) {
 void MoveRobot() {
   // DONE: Line 77, 79, and 83 into a function over multiple balls in the vector of pairs, then check which one will arrive soonest and send that into calcCounts
   //TODO (Kuba): Talk to Albert about how this functions. I think we forgot to add the 'choosing closest ball part'
-  for (auto ballPair : pairedBalls){
+  for (auto ballPair : pairedBalls) {
     Ball new_ball = Ball();
     Mat P(4,1,CV_64F);
+    Mat xyz(3,1,CV_64F);
+
     triangulatePoints(projL, projR, ballPair.first, ballCoord.second, P);
-    new_ball.nextCoords(P.at<double>(0,0)/P.at<double>(3,0), //81
-                       P.at<double>(1,0)/P.at<double>(3,0),
-                       -P.at<double>(2,0)/P.at<double>(3,0));
+    convertPointsFromHomogeneous(P, xyz);
+
+    new_ball.nextCoords(P.at<double>(0,0), P.at<double>(1,0), P.at<double>(2,0));
     new_ball.calcFinalPos(frameTime/2);
     triangulatedBalls.push_back(new_ball)
     //treats pair[0] as left ball and pair[1] as right ball
@@ -198,8 +200,8 @@ int main(int argc, char* argv[]) {
   const Mat distortion_coeffsL(5, 1, CV_64F, distortion_coeffsLData);
   const Mat distortion_coeffsR(5, 1, CV_64F, distortion_coeffsRData);
 
-  Camera captureL = Camera("Left Cam", 0, projL, KL, distortion_coeffsL);
-  Camera captureR = Camera("Right Cam", 2, projR, KR, distortion_coeffsR);
+  Camera captureL = Camera("Left Cam", 0, KL, distortion_coeffsL);
+  Camera captureR = Camera("Right Cam", 2, KR, distortion_coeffsR);
 
   TickMeter timerL;
   TickMeter timerR;
@@ -210,8 +212,7 @@ int main(int argc, char* argv[]) {
 
   HSV.calcValues();
 
-  MainEvent mainEvent(captureL, timerL,
-                      captureR, timerR);
+  MainEvent mainEvent(captureL, timerL, captureR, timerR);
 
   //Roboteq.configure();
   timerL.start();
@@ -229,10 +230,10 @@ int main(int argc, char* argv[]) {
 
     if (showWindows) {
       captureL.drawObject();
-      //captureR.drawObject();
+      captureR.drawObject();
 
       captureL.showOriginal();
-      //captureR.showOriginal();
+      captureR.showOriginal();
 
       if (captureL.useHSV) {
         captureL.showHSV();
