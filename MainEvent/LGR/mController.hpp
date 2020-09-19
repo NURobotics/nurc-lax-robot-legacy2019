@@ -33,7 +33,7 @@ struct mController {
   void print();
   void reset();
 };
-
+//calcCounts needs to be completely changed
 void mController::calcCounts(Robot &robot) {
   double hypotenuse = sqrt(robot.DestinationX * robot.DestinationX +
                            robot.DestinationY * robot.DestinationX);
