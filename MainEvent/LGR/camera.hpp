@@ -249,58 +249,38 @@ vector<Mat> Camera::FindballPositions() {
 }
 
 void Camera::drawObject() {
-  if (ballFound) {
-    for (auto ballBox : result_vec) {
-      if (useHSV)
-        circle(currFrame, Point(ballBox.x, ballBox.y), 20, Scalar(0, 255, 0),
-               2);
-      if (ballBox.y - 25 > 0)
-        line(currFrame, Point(ballBox.x, ballBox.y),
-             Point(ballBox.x, ballBox.y - 25), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(ballBox.x, 0),
-             Scalar(0, 255, 0), 2);
-      if (ballBox.y + 25 < FRAME_HEIGHT)
-        line(currFrame, Point(ballBox.x, ballBox.y),
-             Point(ballBox.x, ballBox.y + 25), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y),
-             Point(ballBox.x, FRAME_HEIGHT), Scalar(0, 255, 0), 2);
-      if (ballBox.x - 25 > 0)
-        line(currFrame, Point(ballBox.x, ballBox.y),
-             Point(ballBox.x - 25, ballBox.y), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y), Point(0, ballBox.y),
-             Scalar(0, 255, 0), 2);
-      if (ballBox.x + 25 < FRAME_WIDTH)
-        line(currFrame, Point(ballBox.x, ballBox.y),
-             Point(ballBox.x + 25, ballBox.y), Scalar(0, 255, 0), 2);
-      else
-        line(currFrame, Point(ballBox.x, ballBox.y),
-             Point(FRAME_WIDTH, ballBox.y), Scalar(0, 255, 0), 2);
-      if (useHSV)
-        putText(currFrame, to_string(ballBox.x) + ", " + to_string(ballBox.y),
-                Point(ballBox.x, ballBox.y + 30), 1, 1, Scalar(0, 255, 0), 2);
-    }
-  }
-
-  if (!useHSV) {
-    for (auto &i : result_vec) {
-      Scalar color(60, 160, 260);
-      rectangle(currFrame, Rect(i.x, i.y, i.w, i.h), color, 3);
-      putText(currFrame, "laxball", Point2f(i.x, i.y - 10),
-              FONT_HERSHEY_COMPLEX_SMALL, 1, color);
-      putText(currFrame, to_string(i.prob), cv::Point2f(i.x + 5, i.y + 35),
-              FONT_HERSHEY_COMPLEX_SMALL, 1, color);
-      if (i.track_id > 0)
-        putText(currFrame, to_string(i.track_id),
-                cv::Point2f(i.x + 15, i.y + 15), FONT_HERSHEY_COMPLEX_SMALL, 1,
-                color);
+  Scalar color(60, 160, 260);
+  for (auto &i : result_vec) {
+    rectangle(currFrame,
+              Rect(i.x, i.y, i.w, i.h),
+              color,
+              3);
+    putText(currFrame,
+            "laxball",
+            Point2f(i.x, i.y - 10),
+            FONT_HERSHEY_COMPLEX_SMALL,
+            1,
+            color);
+    putText(currFrame,
+            to_string(i.prob),
+            cv::Point2f(i.x + 5, i.y + 35),
+            FONT_HERSHEY_COMPLEX_SMALL,
+            1,
+            color);
+    if (i.track_id > 0) {
+      putText(currFrame, 
+              to_string(i.track_id),
+              cv::Point2f(i.x + 15, i.y + 15), 
+              FONT_HERSHEY_COMPLEX_SMALL,
+              1,
+              color);
     }
   }
 }
 
-void Camera::showOriginal() { imshow(name + " Original Image", currFrame); }
+void Camera::showOriginal() {
+  imshow(name + " Original Image", currFrame);
+}
 
 void Camera::showHSV() {
   Mat image;
