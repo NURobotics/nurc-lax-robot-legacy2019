@@ -115,6 +115,7 @@ void MoveRobot() {
 
 bool sortingMethod(Mat &a, Mat &b) { return a.y > b.y; }
 
+//TODO: Review this code. The break thing looks weird.
 void matchingMethod() {
   // so these are sorted right now
   sort(ballCoordR.begin(), ballCoordR.end(), sortingMethod());
