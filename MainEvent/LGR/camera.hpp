@@ -87,6 +87,8 @@ struct Camera {
       cuda::createMorphologyFilter(MORPH_DILATE, CV_8UC1, dilateElement);
 
   // Kuba put this stuff here
+  // This looks wrong, because we're going to be tracking multiple objects
+  // TODO: Examine whether this needs to be a multitracker
   Ptr<Tracker> tracker =
       TrackerKCF::create(); // need to research this tracker_algorithm
 };
