@@ -22,6 +22,7 @@ struct Ball {
   void reset();
 };
 
+//TODO: Finish/Correct This
 void Ball::calcFinalPos(double dt) {
   if (consecutiveFrames < 2) {
     return;
@@ -41,6 +42,8 @@ void Ball::calcFinalPos(double dt) {
               Y.final * EXP_AVG_WEIGHT;
   } else if (consecutiveFrames > 2) {
     Z.calcVelocity(dt);
+    //TODO: Remove this dumb equation and replace with simple kinematics eq.
+    //Also this could just be its own freaking function
     X.final = ((Z.frame1 * Z.frame2 * (Z.frame1 - Z.frame2) * X.frame0 +
                 Z.frame2 * Z.frame0 * (Z.frame2 - Z.frame0) * X.frame1 +
                 Z.frame0 * Z.frame1 * (Z.frame0 - Z.frame1) * X.frame2) /
