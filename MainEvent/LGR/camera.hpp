@@ -92,7 +92,7 @@ struct Camera {
   Ptr<Tracker> tracker =
       TrackerKCF::create(); // need to research this tracker_algorithm
 };
-
+//TODO: Figure out what this does
 Camera::Camera(string n, int f, Mat c, Mat d)
     : name(n), feed(f), cameraMatrix(c), distortionCoeffs(d) {
   // cap.open("../VID_0.avi");
@@ -122,12 +122,12 @@ double Camera::ReadFrame(TickMeter &time) {
   cap.read(currFrame);
   return secs;
 }
-
+//TODO: Remove?
 void Camera::FrameToHSV() {
   currFrameGPU.upload(currFrame);
   cuda::cvtColor(currFrameGPU, HSV, COLOR_BGR2HSV, 4);
 }
-
+//TODO: Remove?
 void Camera::GetThreshold(HSVvalues values) {
   GpuMat HSVchannels[4];
   GpuMat thresholdMaxchannels[3];
@@ -168,6 +168,7 @@ void Camera::GetThreshold(HSVvalues values) {
 }
 
 // This is where the money gets made!
+//Not using this anymore, but should keep it to help write findBallML
 Mat Camera::findBallHSV() {
   vector<vector<Point>> contours;
   vector<Vec4i> hierarchy;
@@ -211,7 +212,8 @@ Mat Camera::findBallHSV() {
 
   return ballCoord;
 }
-
+//TODO: Rewrite this using a multitracker
+//TODO: Remove duplicate detections using centroids
 vector<Mat> Camera::findBallML() {
   vector<Mat> ballCoords;
   result_vec = detector->detect(currFrame, CONF_THRESHOLD);
@@ -232,7 +234,8 @@ vector<Mat> Camera::findBallML() {
 }
 
 Mat Camera::trackBall() { tracker->update(frame, ballBox); }
-
+  
+//TODO: Major Work in progress (read Albert's Robohub notes)
 vector<Mat> Camera::FindballPositions() {
   vector<Mat> ballCoords;
   if (ballFound) {
@@ -283,7 +286,7 @@ void Camera::drawObject() {
 void Camera::showOriginal() {
   imshow(name + " Original Image", currFrame);
 }
-
+//TODO: Remove
 void Camera::showHSV() {
   Mat image;
   HSV.download(image);
