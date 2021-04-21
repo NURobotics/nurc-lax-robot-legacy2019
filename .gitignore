@@ -4,3 +4,6 @@
 *.weights
 *.backup
 *.prototxt
+
+# macOS
+.DS_Store

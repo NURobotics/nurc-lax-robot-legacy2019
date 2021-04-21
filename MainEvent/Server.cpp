@@ -4,10 +4,12 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-// TODO: use arpa/inet.h on Mac and netinet/in.h on Linux/Jetson
-// could add if to check for OS
+#include <iostream>
 //#include <netinet/in.h>
+// arpa/inet.h might work on both MAC and Linux OSes
 #include <arpa/inet.h>
+
+using namespace std;
 
 void error(const char *msg)
 {
@@ -23,7 +25,7 @@ int main(int argc, char *argv[])
     int sockfd, newsockfd, portno;
     socklen_t clilen;
     // buffer is used to read messages coming from client
-    char buffer[256];
+    char buffer[1500];
     struct sockaddr_in serv_addr, cli_addr;
     int n;
     if (argc < 2) {
@@ -86,15 +88,35 @@ int main(int argc, char *argv[])
     printf("server: got connection from %s port %d\n",
             inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
-
     // This send() function sends the 13 bytes of the string to the new socket
     send(newsockfd, "Hello, world!\n", 13, 0);
 
-    bzero(buffer, 256);
+    // continuously waits for message from socket until connection is closed by either
+    // client or server
+    while(1) {
+        // clears buffer. Could also use memset
+        bzero(buffer, 1500);
+        n = read(newsockfd, buffer, 1499);
+        if (!strcmp(buffer, "exit")) {
+            cout << "Client has quit the session" << endl;
+            break;
+        }
 
-    n = read(newsockfd, buffer, 255);
-    if (n < 0) error("ERROR reading from socket");
-    printf("Here is the message: %s\n",buffer);
+        cout << "Client: " << buffer << endl;
+        cout << ">";
+        string data;
+        getline(cin, data);
+        bzero(buffer, 1500);
+        strcpy(buffer, data.c_str());
+        if(data == "exit")
+        {
+            //send to the client that server has closed the connection
+            send(newsockfd, (char*)&buffer, strlen(buffer), 0);
+            break;
+        }
+        if (n < 0) error("ERROR reading from socket");
+        printf("Here is the message: %s\n",buffer);
+    }
 
     // TODO: read the buffer information. loop if incoming message is larger
     // than the buffer size
