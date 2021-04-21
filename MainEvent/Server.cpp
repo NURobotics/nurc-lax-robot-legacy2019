@@ -9,6 +9,9 @@
 // arpa/inet.h might work on both MAC and Linux OSes
 #include <arpa/inet.h>
 
+#define PORT 8080 // NOTE: Might need to redefine if its already in use
+#define MSG_LEN 1024 // Buffer size
+
 using namespace std;
 
 void error(const char *msg)
@@ -22,45 +25,41 @@ int main(int argc, char *argv[])
 {
     // sockfd is listening for different connections
     // newsockfd is for handling currect connection
-    int sockfd, newsockfd, portno;
+    int sockfd, newsockfd;
     socklen_t clilen;
+    int opt = 1; // enables the option
+
     // buffer is used to read messages coming from client
-    char buffer[1500];
+    char buffer[MSG_LEN];
     struct sockaddr_in serv_addr, cli_addr;
     int n;
-    if (argc < 2) {
-        fprintf(stderr,"ERROR, no port provided\n");
-        exit(1);
-    }
     // create a socket
     // socket(int domain, int type, int protocol)
     sockfd =  socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
         error("ERROR opening socket");
 
+    // add socket option so it reuses the same address.
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
+
     // clear address structure. Prepping serv address
     bzero((char *) &serv_addr, sizeof(serv_addr));
-
-    portno = atoi(argv[1]);
 
     /* setup the host_addr structure for use in bind call */
     // server byte order
     serv_addr.sin_family = AF_INET;
-
     // automatically be filled with current host's IP address
     serv_addr.sin_addr.s_addr = INADDR_ANY;
-
     // convert short integer value for port must be converted into network byte order
-    serv_addr.sin_port = htons(portno);
+    serv_addr.sin_port = htons(PORT);
 
     // bind(int fd, struct sockaddr *local_addr, socklen_t addr_length)
     // bind() passes file descriptor, the address structure,
     // and the length of the address structure
-    // This bind() call will bind  the socket to the current IP address on port, portno
+    // This bind() call will bind the socket to the current IP address on port, PORT
     if (bind(sockfd,
                 (struct sockaddr *) &serv_addr,
-                sizeof(serv_addr))
-            < 0)
+                sizeof(serv_addr)) < 0)
         error("ERROR on binding");
 
     // This listen() call tells the socket to listen to the incoming connections.
@@ -95,31 +94,32 @@ int main(int argc, char *argv[])
     // client or server
     while(1) {
         // clears buffer. Could also use memset
-        bzero(buffer, 1500);
-        n = read(newsockfd, buffer, 1499);
+        bzero(buffer, MSG_LEN);
+        // TODO: read the buffer information. loop if incoming message is larger
+        // than the buffer size
+        n = read(newsockfd, buffer, MSG_LEN);
+
+        if (n < 0) error("ERROR reading from socket");
+
         if (!strcmp(buffer, "exit")) {
             cout << "Client has quit the session" << endl;
             break;
         }
 
         cout << "Client: " << buffer << endl;
-        cout << ">";
+        cout << "Input your message >";
+
         string data;
         getline(cin, data);
-        bzero(buffer, 1500);
+        bzero(buffer, MSG_LEN);
         strcpy(buffer, data.c_str());
-        if(data == "exit")
-        {
-            //send to the client that server has closed the connection
+        if(data == "exit") {
+            //notify client that server has closed the connection
             send(newsockfd, (char*)&buffer, strlen(buffer), 0);
             break;
         }
-        if (n < 0) error("ERROR reading from socket");
-        printf("Here is the message: %s\n",buffer);
     }
 
-    // TODO: read the buffer information. loop if incoming message is larger
-    // than the buffer size
 
     // TODO: close client socket connection only when explicitly told or the web
     // app is closed
