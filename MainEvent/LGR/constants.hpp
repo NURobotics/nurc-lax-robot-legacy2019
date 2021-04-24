@@ -1,5 +1,3 @@
-using namespace std;
-
 #define FRAME_WIDTH 1280
 #define FRAME_HEIGHT 720
 #define FRAMES_PER_SECOND 60
