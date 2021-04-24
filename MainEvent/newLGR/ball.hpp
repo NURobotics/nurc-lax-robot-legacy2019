@@ -28,6 +28,12 @@ namespace LGR {
     void calculate_final_position();
   };
 
+  void Ball::map_to_3D() 
+  {
+
+  }
+
+
   //TODO: Finish/Correct This
   void Ball::calcFinalPos(double dt) {
     //Calculate Final Position
