@@ -7,7 +7,22 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+var WebSocket = require('ws');
+
 var app = express();
+
+const ws = new WebSocket('ws://127.0.0.1:8080');
+
+ws.on('open', function open() {
+  ws.send('something');
+});
+
+ws.on('message', function incoming(data) {
+  console.log(data);
+  ws.on('open', function outgoing(){
+    ws.send('client recieved server message');
+  })
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -87,3 +102,4 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+

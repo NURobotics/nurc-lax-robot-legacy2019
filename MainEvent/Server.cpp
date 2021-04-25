@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
         getline(cin, data);
         bzero(buffer, MSG_LEN);
         strcpy(buffer, data.c_str());
+        send(newsockfd, (char*)&buffer, strlen(buffer), 0);
         if(data == "exit") {
             //notify client that server has closed the connection
             send(newsockfd, (char*)&buffer, strlen(buffer), 0);
