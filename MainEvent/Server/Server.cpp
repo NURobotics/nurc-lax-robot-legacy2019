@@ -5,12 +5,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <iostream>
-//#include <netinet/in.h>
+#include <netinet/in.h>
 // arpa/inet.h might work on both MAC and Linux OSes
 #include <arpa/inet.h>
 
-#define PORT 8080 // NOTE: Might need to redefine if its already in use
+#define PORT 8088 // NOTE: Might need to redefine if its already in use
 #define MSG_LEN 1024 // Buffer size
+#define BACKLOG 10
 
 using namespace std;
 
@@ -65,39 +66,38 @@ int main(int argc, char *argv[])
     // This listen() call tells the socket to listen to the incoming connections.
     // The listen() function places all incoming connection into a backlog queue
     // until accept() call accepts the connection.
-    // Here, we set the maximum size for the backlog queue to 5.
-    listen(sockfd,5); // TODO: look at the necessary queue size. What happens if queue is full?
-
-    // The accept() call actually accepts an incoming connection
-    clilen = sizeof(cli_addr);
-
-    // This accept() function will write the connecting client's address info
-    // into the the address structure and the size of that structure is clilen.
-    // The accept() returns a new socket file descriptor for the accepted connection.
-    // So, the original socket file descriptor can continue to be used
-    // for accepting new connections while the new socker file descriptor is used for
-    // communicating with the connected client.
-    newsockfd = accept(sockfd,
-            (struct sockaddr *) &cli_addr,
-            &clilen
-            );
-    if (newsockfd < 0)
-        error("ERROR on accept");
-
-    printf("server: got connection from %s port %d\n",
-            inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-
-    // This send() function sends the 13 bytes of the string to the new socket
-    send(newsockfd, "Hello, world!\n", 13, 0);
+    // Here, we set the maximum size for the backlog queue to number specified by BACKLOG
+    listen(sockfd, BACKLOG); // TODO: look at the necessary queue size. What happens if queue is full?
 
     // continuously waits for message from socket until connection is closed by either
     // client or server
+    printf("server: waiting for connections...\n");
     while(1) {
         // clears buffer. Could also use memset
         bzero(buffer, MSG_LEN);
+        // This accept() function will write the connecting client's address info
+        // into the the address structure and the size of that structure is clilen.
+        // The accept() returns a new socket file descriptor for the accepted connection.
+        // So, the original socket file descriptor can continue to be used
+        // for accepting new connections while the new socker file descriptor is used for
+        // communicating with the connected client.
+
+        // The accept() call actually accepts an incoming connection
+        clilen = sizeof(cli_addr);
+        newsockfd = accept(sockfd,
+                (struct sockaddr *) &cli_addr,
+                &clilen
+                );
+
+        if (newsockfd < 0)
+            error("ERROR on accept");
+
+        printf("server: got connection from %s port %d\n",
+                inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+
         // TODO: read the buffer information. loop if incoming message is larger
         // than the buffer size
-        n = read(newsockfd, buffer, MSG_LEN);
+        n = read(newsockfd, buffer, MSG_LEN-1);
 
         if (n < 0) error("ERROR reading from socket");
 
@@ -107,20 +107,27 @@ int main(int argc, char *argv[])
         }
 
         cout << "Client: " << buffer << endl;
-        cout << "Input your message >";
+        // cout << "Input your message >";
 
         string data;
         getline(cin, data);
         bzero(buffer, MSG_LEN);
-        strcpy(buffer, data.c_str());
-        send(newsockfd, (char*)&buffer, strlen(buffer), 0);
+        // strcpy(buffer, data.c_str());
+        snprintf((char*)buffer,
+                sizeof(buffer),
+                "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\
+                \r\nConnection: Upgrade\r\nSec\r\n\r\nHello");
+        /* snprintf((char*)buffer, */
+        /*         sizeof(buffer), */
+        /*         "HTTP/1.0 200 OK\r\n\r\nHello"); */
+        send(newsockfd, (char*)buffer, strlen((char*)buffer), 0);
         if(data == "exit") {
             //notify client that server has closed the connection
             send(newsockfd, (char*)&buffer, strlen(buffer), 0);
             break;
         }
+        close(newsockfd);
     }
-
 
     // TODO: close client socket connection only when explicitly told or the web
     // app is closed

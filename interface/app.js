@@ -11,17 +11,15 @@ var WebSocket = require('ws');
 
 var app = express();
 
-const ws = new WebSocket('ws://127.0.0.1:8080');
+const ws = new WebSocket('ws://127.0.0.1:8080/');
 
 ws.on('open', function open() {
   ws.send('something');
+  console.log('sent message to server');
 });
 
 ws.on('message', function incoming(data) {
   console.log(data);
-  ws.on('open', function outgoing(){
-    ws.send('client recieved server message');
-  })
 });
 
 // view engine setup
@@ -56,7 +54,7 @@ app.get(/*url, function*/ {
 });
 
 app.get(/*url, function*/{
-  //press ++(Z) button, speed up 
+  //press ++(Z) button, speed up
 });
 
 app.get(/*url, function*/ {
@@ -72,7 +70,7 @@ app.get(/*url, function*/{
 });
 
 app.get(/*url, function*/{
-  // press 2, start sending information about speed, and ball coordinates and if goalie managed to catch it 
+  // press 2, start sending information about speed, and ball coordinates and if goalie managed to catch it
 });
 
 app.get(/*url, function*/{

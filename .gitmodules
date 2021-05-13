@@ -1,0 +1,3 @@
+[submodule "MainEvent/Server/Simple-WebSocket-Server"]
+	path = MainEvent/Server/Simple-WebSocket-Server
+	url = https://gitlab.com/eidheim/Simple-WebSocket-Server.git
