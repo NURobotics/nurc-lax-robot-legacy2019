@@ -11,12 +11,15 @@ var WebSocket = require('ws');
 
 var app = express();
 
-const ws = new WebSocket('ws://127.0.0.1:8080/');
+// const ws = new WebSocket('ws://127.0.0.1:8080/');
+var ws = new WebSocket("ws://localhost:8080/echo");
 
 ws.on('open', function open() {
   ws.send('something');
   console.log('sent message to server');
 });
+
+// ws.send("test");
 
 ws.on('message', function incoming(data) {
   console.log(data);
