@@ -1,0 +1,10 @@
+^C:\USERS\SEANP\DOCUMENTS\LACROSSE\NURC-LAX-ROBOT\REFERENCE-TESTING\COPY_OF_ROBOTEQ\CMAKEFILES\24F97789589FB657E4A8FEB9DD29CD7A\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/seanp/Documents/lacrosse/nurc-lax-robot/reference-TESTING/copy_of_Roboteq -BC:/Users/seanp/Documents/lacrosse/nurc-lax-robot/reference-TESTING/copy_of_Roboteq --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/seanp/Documents/lacrosse/nurc-lax-robot/reference-TESTING/copy_of_Roboteq/test_roboteq.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
